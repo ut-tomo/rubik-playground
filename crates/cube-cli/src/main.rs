@@ -17,38 +17,38 @@ struct Cli {
 enum Commands {
     /// キューブの状態を表示
     Show,
-    
+
     /// アルゴリズムを実行
     Apply {
         /// 実行する手順（例: "R U R' U'"）
         #[arg(value_name = "ALGORITHM")]
         algorithm: String,
     },
-    
+
     /// アルゴリズムの逆手を計算
     Inverse {
         /// 手順（例: "R U R' U'"）
         #[arg(value_name = "ALGORITHM")]
         algorithm: String,
     },
-    
+
     /// 2つのアルゴリズムを合成
     Compose {
         /// 最初のアルゴリズム
         #[arg(value_name = "ALGO1")]
         algo1: String,
-        
+
         /// 2番目のアルゴリズム
         #[arg(value_name = "ALGO2")]
         algo2: String,
     },
-    
+
     /// アルゴリズムのべき乗を計算
     Power {
         /// アルゴリズム
         #[arg(value_name = "ALGORITHM")]
         algorithm: String,
-        
+
         /// 指数
         #[arg(value_name = "N")]
         n: i32,
@@ -62,41 +62,41 @@ fn main() {
         Commands::Show => {
             let cube = Cube::solved();
             println!("解決済みキューブ:");
-            println!("{}", cube.to_string());
+            println!("{}", cube);
         }
-        
+
         Commands::Apply { algorithm } => {
             let cube = Cube::solved();
             let algo = parse_algorithm(&algorithm);
-            
+
             println!("アルゴリズム: {}", algo.to_notation());
             let result = algo.apply(&cube);
             println!("結果:");
-            println!("{}", result.to_string());
+            println!("{}", result);
         }
-        
+
         Commands::Inverse { algorithm } => {
             let algo = parse_algorithm(&algorithm);
             let inv = algo.inverse();
-            
+
             println!("元のアルゴリズム: {}", algo.to_notation());
             println!("逆手: {}", inv.to_notation());
         }
-        
+
         Commands::Compose { algo1, algo2 } => {
             let a1 = parse_algorithm(&algo1);
             let a2 = parse_algorithm(&algo2);
             let composed = a1.compose(&a2);
-            
+
             println!("アルゴリズム1: {}", a1.to_notation());
             println!("アルゴリズム2: {}", a2.to_notation());
             println!("合成結果: {}", composed.to_notation());
         }
-        
+
         Commands::Power { algorithm, n } => {
             let algo = parse_algorithm(&algorithm);
             let powered = algo.power(n);
-            
+
             println!("アルゴリズム: {}", algo.to_notation());
             println!("{}乗: {}", n, powered.to_notation());
         }
@@ -107,9 +107,9 @@ fn main() {
 fn parse_algorithm(s: &str) -> Algorithm {
     let moves: Vec<Move> = s
         .split_whitespace()
-        .filter_map(|token| Move::from_notation(token))
+        .filter_map(Move::from_notation)
         .collect();
-    
+
     Algorithm::new(moves)
 }
 

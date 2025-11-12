@@ -17,3 +17,26 @@ repository = "https://github.com/ut-tomo/rubik-playground"
 # 共通の依存関係
 serde = { version = "1.0", features = ["derive"] }
 thiserror = "1.0"
+
+# ワークスペースルートでのexamples/tests/benchesの定義
+[package]
+name = "rubik-playground"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+cube-core = { path = "crates/cube-core" }
+
+[[example]]
+name = "basic_usage"
+path = "examples/basic_usage.rs"
+
+[[test]]
+name = "core_integration"
+path = "tests/core_integration.rs"
+
+[[bench]]
+name = "core_benches"
+path = "benches/core_benches.rs"
+harness = false

@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 /// 3x3x3 ルービックキューブの状態
-/// 
+///
 /// 状態は24個の要素で表現:
 /// - 8個のコーナーピース（各3つの向き）
 /// - 12個のエッジピース（各2つの向き）
@@ -44,19 +44,21 @@ impl Cube {
     pub fn edges(&self) -> &[u8; 12] {
         &self.edges
     }
-
-    /// 状態の文字列表現
-    pub fn to_string(&self) -> String {
-        format!(
-            "Corners: {:?}\nEdges: {:?}",
-            self.corners, self.edges
-        )
-    }
 }
 
 impl Default for Cube {
     fn default() -> Self {
         Self::solved()
+    }
+}
+
+impl std::fmt::Display for Cube {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Corners: {:?}\nEdges: {:?}",
+            self.corners, self.edges
+        )
     }
 }
 

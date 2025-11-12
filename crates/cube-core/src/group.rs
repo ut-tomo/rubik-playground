@@ -6,13 +6,13 @@ use crate::{Cube, Move};
 pub trait GroupOp {
     /// 単位元を返す
     fn identity() -> Self;
-    
+
     /// 群演算（合成）を実行
     fn compose(&self, other: &Self) -> Self;
-    
+
     /// 逆元を返す
     fn inverse(&self) -> Self;
-    
+
     /// べき乗を計算
     fn power(&self, n: i32) -> Self
     where
@@ -21,15 +21,15 @@ pub trait GroupOp {
         if n == 0 {
             return Self::identity();
         }
-        
+
         if n < 0 {
             return self.inverse().power(-n);
         }
-        
+
         let mut result = Self::identity();
         let mut base = self.clone();
         let mut exp = n;
-        
+
         while exp > 0 {
             if exp % 2 == 1 {
                 result = result.compose(&base);
@@ -37,7 +37,7 @@ pub trait GroupOp {
             base = base.compose(&base);
             exp /= 2;
         }
-        
+
         result
     }
 }
@@ -110,12 +110,7 @@ impl GroupOp for Algorithm {
     }
 
     fn inverse(&self) -> Self {
-        let moves = self
-            .moves
-            .iter()
-            .rev()
-            .map(|m| m.inverse())
-            .collect();
+        let moves = self.moves.iter().rev().map(|m| m.inverse()).collect();
         Self::new(moves)
     }
 }
@@ -142,16 +137,19 @@ mod tests {
         let algo1 = Algorithm::new(vec![Move::R, Move::U]);
         let algo2 = Algorithm::new(vec![Move::RPrime, Move::UPrime]);
         let composed = algo1.compose(&algo2);
-        
+
         assert_eq!(composed.len(), 4);
-        assert_eq!(composed.moves(), &[Move::R, Move::U, Move::RPrime, Move::UPrime]);
+        assert_eq!(
+            composed.moves(),
+            &[Move::R, Move::U, Move::RPrime, Move::UPrime]
+        );
     }
 
     #[test]
     fn test_algorithm_inverse() {
         let algo = Algorithm::new(vec![Move::R, Move::U, Move::F2]);
         let inv = algo.inverse();
-        
+
         assert_eq!(inv.moves(), &[Move::F2, Move::UPrime, Move::RPrime]);
     }
 
@@ -165,7 +163,7 @@ mod tests {
     fn test_power() {
         let algo = Algorithm::new(vec![Move::R, Move::U]);
         let squared = algo.power(2);
-        
+
         assert_eq!(squared.len(), 4);
         assert_eq!(squared.moves(), &[Move::R, Move::U, Move::R, Move::U]);
     }

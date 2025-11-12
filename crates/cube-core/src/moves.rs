@@ -11,35 +11,35 @@ pub enum Move {
     UPrime,
     /// 上面を180度
     U2,
-    
+
     /// 下面を時計回りに90度
     D,
     /// 下面を反時計回りに90度
     DPrime,
     /// 下面を180度
     D2,
-    
+
     /// 右面を時計回りに90度
     R,
     /// 右面を反時計回りに90度
     RPrime,
     /// 右面を180度
     R2,
-    
+
     /// 左面を時計回りに90度
     L,
     /// 左面を反時計回りに90度
     LPrime,
     /// 左面を180度
     L2,
-    
+
     /// 前面を時計回りに90度
     F,
     /// 前面を反時計回りに90度
     FPrime,
     /// 前面を180度
     F2,
-    
+
     /// 後面を時計回りに90度
     B,
     /// 後面を反時計回りに90度
@@ -125,12 +125,24 @@ impl Move {
     /// すべての基本手を列挙
     pub fn all_moves() -> [Move; 18] {
         [
-            Move::U, Move::UPrime, Move::U2,
-            Move::D, Move::DPrime, Move::D2,
-            Move::R, Move::RPrime, Move::R2,
-            Move::L, Move::LPrime, Move::L2,
-            Move::F, Move::FPrime, Move::F2,
-            Move::B, Move::BPrime, Move::B2,
+            Move::U,
+            Move::UPrime,
+            Move::U2,
+            Move::D,
+            Move::DPrime,
+            Move::D2,
+            Move::R,
+            Move::RPrime,
+            Move::R2,
+            Move::L,
+            Move::LPrime,
+            Move::L2,
+            Move::F,
+            Move::FPrime,
+            Move::F2,
+            Move::B,
+            Move::BPrime,
+            Move::B2,
         ]
     }
 }

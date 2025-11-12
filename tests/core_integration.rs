@@ -20,7 +20,7 @@ fn test_algorithm_inverse_composition() {
     let algo = Algorithm::new(vec![Move::R, Move::U, Move::RPrime, Move::UPrime]);
     let inverse = algo.inverse();
     let composed = algo.compose(&inverse);
-    
+
     // A * A^-1 = I（単位元）
     // 手順の長さは元の2倍になる（簡約化は未実装）
     assert_eq!(composed.len(), algo.len() * 2);
@@ -37,7 +37,7 @@ fn test_move_inverse() {
 fn test_algorithm_power_zero() {
     let algo = Algorithm::new(vec![Move::R, Move::U]);
     let power_zero = algo.power(0);
-    
+
     assert!(power_zero.is_empty());
 }
 
@@ -45,7 +45,7 @@ fn test_algorithm_power_zero() {
 fn test_algorithm_power_negative() {
     let algo = Algorithm::new(vec![Move::R, Move::U]);
     let power_minus_one = algo.power(-1);
-    
+
     assert_eq!(power_minus_one.moves(), algo.inverse().moves());
 }
 

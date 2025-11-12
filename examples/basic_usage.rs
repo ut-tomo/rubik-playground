@@ -8,7 +8,7 @@ fn main() {
     // 1. 解決済みキューブの作成
     let cube = Cube::solved();
     println!("1. 解決済みキューブ:");
-    println!("{}\n", cube.to_string());
+    println!("{}\n", cube);
 
     // 2. アルゴリズムの作成
     let sexy_move = Algorithm::new(vec![Move::R, Move::U, Move::RPrime, Move::UPrime]);
@@ -26,7 +26,11 @@ fn main() {
     // 5. べき乗
     let sexy_x6 = sexy_move.power(6);
     println!("5. セクシームーブの6乗:");
-    println!("   {} = {}\n", sexy_move.to_notation(), sexy_x6.to_notation());
+    println!(
+        "   {} = {}\n",
+        sexy_move.to_notation(),
+        sexy_x6.to_notation()
+    );
 
     // 6. 手の表記変換
     println!("6. 手の表記例:");

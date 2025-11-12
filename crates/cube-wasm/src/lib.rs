@@ -9,6 +9,12 @@ pub struct WasmCube {
     cube: Cube,
 }
 
+impl Default for WasmCube {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[wasm_bindgen]
 impl WasmCube {
     /// 解決済みキューブを作成
@@ -45,13 +51,13 @@ impl WasmAlgorithm {
     pub fn new(notation: &str) -> Result<WasmAlgorithm, JsValue> {
         let moves: Vec<Move> = notation
             .split_whitespace()
-            .filter_map(|token| Move::from_notation(token))
+            .filter_map(Move::from_notation)
             .collect();
-        
+
         if moves.is_empty() && !notation.trim().is_empty() {
             return Err(JsValue::from_str("Invalid algorithm notation"));
         }
-        
+
         Ok(Self {
             algo: Algorithm::new(moves),
         })
@@ -99,8 +105,7 @@ impl WasmAlgorithm {
 /// モジュール初期化
 #[wasm_bindgen(start)]
 pub fn main() {
-    #[cfg(feature = "console_error_panic_hook")]
-    console_error_panic_hook::set_once();
+    // パニックフックの設定などはここに追加可能
 }
 
 #[cfg(test)]
