@@ -1,14 +1,25 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+//! # cube-core
+//!
+//! ルービックキューブの状態表現と群演算を提供するコアライブラリ
+
+pub mod cube;
+pub mod group;
+pub mod moves;
+
+pub use cube::Cube;
+pub use group::GroupOp;
+pub use moves::Move;
+
+// 追加の公開型
+pub use group::Algorithm;
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+    fn test_identity() {
+        let cube = Cube::solved();
+        assert!(cube.is_solved());
     }
 }

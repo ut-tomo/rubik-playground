@@ -9,4 +9,11 @@ resolver = "2"
 [workspace.package]
 edition = "2021"
 license = "MIT"
-description = "A modular Rust + WebAssembly playground for exploring Rubik’s Cube operations, group theory, and algorithmic logic."
+description = "A modular Rust + WebAssembly playground for exploring Rubik's Cube operations, group theory, and algorithmic logic."
+authors = ["ut-tomo"]
+repository = "https://github.com/ut-tomo/rubik-playground"
+
+[workspace.dependencies]
+# 共通の依存関係
+serde = { version = "1.0", features = ["derive"] }
+thiserror = "1.0"

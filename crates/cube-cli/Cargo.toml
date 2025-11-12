@@ -5,6 +5,12 @@ edition.workspace = true
 license.workspace = true
 description.workspace = true
 
+[[bin]]
+name = "cube-cli"
+path = "src/main.rs"
+
 [dependencies]
+cube-core = { path = "../cube-core" }
+clap = { version = "4.5", features = ["derive"] }
 
 
