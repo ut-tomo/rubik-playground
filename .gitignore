@@ -3,7 +3,8 @@
 # ========================================
 # Build artifacts and logs
 /target/
-/Cargo.lock
+# Cargo.lock は実行可能ファイルを含むプロジェクトなのでコミットする
+# /Cargo.lock
 **/*.rs.bk
 *.rlib
 *.rmeta

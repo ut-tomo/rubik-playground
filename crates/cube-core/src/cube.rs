@@ -54,11 +54,7 @@ impl Default for Cube {
 
 impl std::fmt::Display for Cube {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Corners: {:?}\nEdges: {:?}",
-            self.corners, self.edges
-        )
+        write!(f, "Corners: {:?}\nEdges: {:?}", self.corners, self.edges)
     }
 }
 
