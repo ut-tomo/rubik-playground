@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik's Cube Playground</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .input-group {
+            margin: 20px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #4CAF50;
+            border-radius: 4px;
+        }
+        .error {
+            color: #d32f2f;
+            border-left-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 Rubik's Cube Playground</h1>
+        <p>ルービックキューブの群演算をWebブラウザで体験</p>
+        
+        <div class="input-group">
+            <label for="algorithm">アルゴリズム（例: R U R' U'）</label>
+            <input type="text" id="algorithm" placeholder="R U R' U'" value="R U R' U'">
+        </div>
+        
+        <div>
+            <button onclick="showInverse()">逆手を計算</button>
+            <button onclick="showPower()">6乗を計算</button>
+            <button onclick="showCompose()">セクシームーブと合成</button>
+        </div>
+        
+        <div id="result" class="result" style="display:none;">
+            <strong>結果:</strong>
+            <pre id="output"></pre>
+        </div>
+    </div>
+
+    <script type="module">
+        // WASM読み込み用のプレースホルダー
+        // 実際にはwasm-packでビルドしたモジュールをimportする
+        
+        window.showInverse = function() {
+            const algo = document.getElementById('algorithm').value;
+            showResult(`逆手: ${reverseNotation(algo)}`);
+        };
+        
+        window.showPower = function() {
+            const algo = document.getElementById('algorithm').value;
+            showResult(`6乗: ${algo} を6回繰り返す`);
+        };
+        
+        window.showCompose = function() {
+            const algo = document.getElementById('algorithm').value;
+            showResult(`合成: ${algo} + R U R' U'`);
+        };
+        
+        function showResult(text) {
+            const result = document.getElementById('result');
+            const output = document.getElementById('output');
+            output.textContent = text;
+            result.style.display = 'block';
+            result.classList.remove('error');
+        }
+        
+        // 簡易的な逆手計算（デモ用）
+        function reverseNotation(algo) {
+            const moves = algo.trim().split(/\s+/).reverse();
+            return moves.map(m => {
+                if (m.endsWith("'")) return m.slice(0, -1);
+                if (m.endsWith("2")) return m;
+                return m + "'";
+            }).join(' ');
+        }
+    </script>
+</body>
+</html>
