@@ -1,6 +1,6 @@
-use wasm_bindgen::prelude::*;
 use cube_core::{Cube, Move};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use wasm_bindgen::prelude::*;
 
 // Console logging for debugging
 #[wasm_bindgen]
@@ -172,8 +172,7 @@ fn parse_move(s: &str) -> Option<Move> {
 fn parse_algorithm(s: &str) -> Result<Vec<Move>, JsValue> {
     s.split_whitespace()
         .map(|token| {
-            parse_move(token)
-                .ok_or_else(|| JsValue::from_str(&format!("Invalid move: {}", token)))
+            parse_move(token).ok_or_else(|| JsValue::from_str(&format!("Invalid move: {}", token)))
         })
         .collect()
 }

@@ -1,19 +1,19 @@
 // state.rs: Cube 構造体・基本操作
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Cube{
-    pub corner_perm:[u8; 8], //角パーツの位置
-    pub corner_ori: [u8; 8], //向き
+pub struct Cube {
+    pub corner_perm: [u8; 8], //角パーツの位置
+    pub corner_ori: [u8; 8],  //向き
     pub edge_perm: [u8; 12],
     pub edge_ori: [u8; 12],
 }
 
 impl Cube {
     //完成状態を返す
-    pub fn identity () -> Self {
+    pub fn identity() -> Self {
         Cube {
             corner_perm: [0, 1, 2, 3, 4, 5, 6, 7],
-            corner_ori: [0; 8],  //0, 1, 2の3値で角のねじれ表現
+            corner_ori: [0; 8], //0, 1, 2の3値で角のねじれ表現
             edge_perm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
             edge_ori: [0; 12], //0,1の2値で辺の反転表現
         }
@@ -71,7 +71,6 @@ fn parity(perm: &[u8]) -> u8 {
 
     (inv % 2) as u8
 }
-
 
 // Corner indices (0..7):
 // 0: UFL, 1: UFR, 2: UBR, 3: UBL,

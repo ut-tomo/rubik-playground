@@ -1,12 +1,12 @@
-pub mod state;
-pub mod moves;
 pub mod alg;
-pub mod legality;
 pub mod cycles;
+pub mod legality;
+pub mod moves;
+pub mod state;
 
 // 主要な型を再エクスポート
-pub use state::Cube;
-pub use moves::Move;
-pub use alg::{apply_alg, invert_alg, commutator, conjugate};
-pub use legality::LegalityInfo;
+pub use alg::{apply_alg, commutator, conjugate, invert_alg};
 pub use cycles::{corner_cycles, edge_cycles};
+pub use legality::LegalityInfo;
+pub use moves::Move;
+pub use state::Cube;

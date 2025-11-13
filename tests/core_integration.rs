@@ -1,6 +1,6 @@
 //! ワークスペース統合テスト
 
-use cube_core::{Cube, Move, apply_alg, invert_alg, commutator, conjugate};
+use cube_core::{apply_alg, commutator, conjugate, invert_alg, Cube, Move};
 
 #[test]
 fn test_cube_solved_state() {
@@ -37,7 +37,7 @@ fn test_commutator() {
     let a = vec![Move::R, Move::U];
     let b = vec![Move::L, Move::D];
     let comm = commutator(&a, &b);
-    
+
     // Commutator should have length = len(a) + len(b) + len(a') + len(b')
     assert_eq!(comm.len(), a.len() + b.len() + a.len() + b.len());
 }
@@ -47,7 +47,7 @@ fn test_conjugate() {
     let a = vec![Move::R];
     let b = vec![Move::U];
     let conj = conjugate(&a, &b);
-    
+
     // Conjugate should have length = len(a) + len(b) + len(a')
     assert_eq!(conj.len(), a.len() + b.len() + a.len());
 }

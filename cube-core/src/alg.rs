@@ -12,21 +12,30 @@ impl Move {
     pub fn inverse(self) -> Move {
         use Move::*;
         match self {
-            U => Up, Up => U, U2 => U2,
-            D => Dp, Dp => D, D2 => D2,
-            R => Rp, Rp => R, R2 => R2,
-            L => Lp, Lp => L, L2 => L2,
-            F => Fp, Fp => F, F2 => F2,
-            B => Bp, Bp => B, B2 => B2,
+            U => Up,
+            Up => U,
+            U2 => U2,
+            D => Dp,
+            Dp => D,
+            D2 => D2,
+            R => Rp,
+            Rp => R,
+            R2 => R2,
+            L => Lp,
+            Lp => L,
+            L2 => L2,
+            F => Fp,
+            Fp => F,
+            F2 => F2,
+            B => Bp,
+            Bp => B,
+            B2 => B2,
         }
     }
 }
 
 pub fn invert_alg(alg: &[Move]) -> Vec<Move> {
-    alg.iter()
-        .rev()       
-        .map(|m| m.inverse())
-        .collect()
+    alg.iter().rev().map(|m| m.inverse()).collect()
 }
 
 pub fn commutator(a: &[Move], b: &[Move]) -> Vec<Move> {
@@ -37,7 +46,6 @@ pub fn commutator(a: &[Move], b: &[Move]) -> Vec<Move> {
     res.extend(invert_alg(b));
     res
 }
-
 
 pub fn conjugate(a: &[Move], b: &[Move]) -> Vec<Move> {
     let mut res = Vec::new();
