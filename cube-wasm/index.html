@@ -439,12 +439,12 @@
                 
                 // Materials for 6 faces: [Right, Left, Top, Bottom, Front, Back]
                 const materials = [
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.right] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.left] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.top] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.bottom] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.front] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.back] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : 0x000000 }),
                 ];
                 
                 const cubelet = new THREE.Mesh(geometry, materials);
@@ -466,12 +466,12 @@
                 
                 // 明示的に各面の色を取得
                 const materials = [
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.right] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.left] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.top] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.bottom] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.front] || 0x000000 }),
-                    new THREE.MeshStandardMaterial({ color: colorMap[colors.back] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : 0x000000 }),
                 ];
                 
                 const cubelet = new THREE.Mesh(geometry, materials);
