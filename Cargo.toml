@@ -1,8 +1,7 @@
 [workspace]
 members = [
-  "crates/cube-core",
-  "crates/cube-cli",
-  "crates/cube-wasm",
+  "cube-core",
+  "cube-cli",
 ]
 resolver = "2"
 
@@ -26,7 +25,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-cube-core = { path = "crates/cube-core" }
+cube-core = { path = "cube-core" }
 
 [[example]]
 name = "basic_usage"
