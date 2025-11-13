@@ -49,129 +49,25 @@ impl Cube {
     }
 
     fn apply_u(&mut self) {
-        // corners: 0(UFL),1(UFR),2(UBR),3(UBL)
-        let temp = self.corner_perm[0];
-        self.corner_perm[0] = self.corner_perm[3];
-        self.corner_perm[3] = self.corner_perm[2];
-        self.corner_perm[2] = self.corner_perm[1];
-        self.corner_perm[1] = temp;
-        // edges: 0(UF),1(UR),2(UB),3(UL)
-        let temp = self.edge_perm[0];
-        self.edge_perm[0] = self.edge_perm[3];
-        self.edge_perm[3] = self.edge_perm[2];
-        self.edge_perm[2] = self.edge_perm[1];
-        self.edge_perm[1] = temp;
-        // ori不変
-    }
-
-
-    fn apply_d(&mut self) {
-        // corners: 4(DFL),5(DFR),6(DBR),7(DBL)
-        let temp = self.corner_perm[4];
-        self.corner_perm[4] = self.corner_perm[7];
-        self.corner_perm[7] = self.corner_perm[6];
-        self.corner_perm[6] = self.corner_perm[5];
-        self.corner_perm[5] = temp;
-        // edges: 8(DF),9(DR),10(DB),11(DL)
-        let temp = self.edge_perm[8];
-        self.edge_perm[8]  = self.edge_perm[11];
-        self.edge_perm[11] = self.edge_perm[10];
-        self.edge_perm[10] = self.edge_perm[9];
-        self.edge_perm[9]  = temp;
-        // ori不変
-    }
-
-
-    fn apply_l(&mut self) {
-        // corners: 0(UFL),3(UBL),7(DBL),4(DFL)
-        let temp = self.corner_perm[0];
-        self.corner_perm[0] = self.corner_perm[4];
-        self.corner_perm[4] = self.corner_perm[7];
-        self.corner_perm[7] = self.corner_perm[3];
-        self.corner_perm[3] = temp;
-        // edges: 3(UL),7(BL),11(DL),4(FL)
-        let temp = self.edge_perm[3];
-        self.edge_perm[3]  = self.edge_perm[4];
-        self.edge_perm[4]  = self.edge_perm[11];
-        self.edge_perm[11] = self.edge_perm[7];
-        self.edge_perm[7]  = temp;
-        // 本当は L では向きも変わるが、ここではまだ触らない
-    }
-
-
-    fn apply_r(&mut self) {
-        // corners: 1(UFR),2(UBR),6(DBR),5(DFR)
-        let temp = self.corner_perm[1];
-        self.corner_perm[1] = self.corner_perm[5];
-        self.corner_perm[5] = self.corner_perm[6];
-        self.corner_perm[6] = self.corner_perm[2];
-        self.corner_perm[2] = temp;
-        // edges: 1(UR),6(BR),9(DR),5(FR)
-        let temp = self.edge_perm[1];
-        self.edge_perm[1] = self.edge_perm[5];
-        self.edge_perm[5] = self.edge_perm[9];
-        self.edge_perm[9] = self.edge_perm[6];
-        self.edge_perm[6] = temp;
-        // 本当は R では向きも変わるが、ここではまだ触らない
-    }
-
-
-    fn apply_f(&mut self) {
-        // corners: 0(UFL),1(UFR),5(DFR),4(DFL)
-        let temp = self.corner_perm[0];
-        self.corner_perm[0] = self.corner_perm[4];
-        self.corner_perm[4] = self.corner_perm[5];
-        self.corner_perm[5] = self.corner_perm[1];
-        self.corner_perm[1] = temp;
-        // edges: 0(UF),5(FR),8(DF),4(FL)
-        let temp = self.edge_perm[0];
-        self.edge_perm[0] = self.edge_perm[4];
-        self.edge_perm[4] = self.edge_perm[8];
-        self.edge_perm[8] = self.edge_perm[5];
-        self.edge_perm[5] = temp;
-        // F では本当は向きも変わる（後で edge_ori, corner_ori を更新する）
-    }
-
-
-    fn apply_b(&mut self) {
-        // corners: 2(UBR),3(UBL),7(DBL),6(DBR)
-        let temp = self.corner_perm[2];
-        self.corner_perm[2] = self.corner_perm[6];
-        self.corner_perm[6] = self.corner_perm[7];
-        self.corner_perm[7] = self.corner_perm[3];
-        self.corner_perm[3] = temp;
-        // edges: 2(UB),7(BL),10(DB),6(BR)
-        let temp = self.edge_perm[2];
-        self.edge_perm[2]  = self.edge_perm[6];
-        self.edge_perm[6]  = self.edge_perm[10];
-        self.edge_perm[10] = self.edge_perm[7];
-        self.edge_perm[7]  = temp;
-        // B では本当は向きも変わる（後で実装）
-    }
-
-    
-
-}
-
-/*
-    fn apply_u(&mut self) {
         let cp = self.corner_perm;
         let co = self.corner_ori;
         let ep = self.edge_perm;
         let eo = self.edge_ori;
 
-        // corners: cycle (0 1 2 3)
-        self.corner_perm[0] = cp[3];
-        self.corner_ori[0]  = co[3];
+        // corners: cycle (0 1 2 3) 時計回り(上から見て)
+        // 0←1, 1←2, 2←3, 3←0
+        // 結果: [1, 2, 3, 0, ...]
+        self.corner_perm[0] = cp[1];
+        self.corner_ori[0]  = co[1];
 
-        self.corner_perm[1] = cp[0];
-        self.corner_ori[1]  = co[0];
+        self.corner_perm[1] = cp[2];
+        self.corner_ori[1]  = co[2];
 
-        self.corner_perm[2] = cp[1];
-        self.corner_ori[2]  = co[1];
+        self.corner_perm[2] = cp[3];
+        self.corner_ori[2]  = co[3];
 
-        self.corner_perm[3] = cp[2];
-        self.corner_ori[3]  = co[2];
+        self.corner_perm[3] = cp[0];
+        self.corner_ori[3]  = co[0];
 
         // 下段の corners はそのまま
         self.corner_perm[4] = cp[4];
@@ -183,18 +79,18 @@ impl Cube {
         self.corner_perm[7] = cp[7];
         self.corner_ori[7]  = co[7];
 
-        // edges: cycle (0 1 2 3)
-        self.edge_perm[0] = ep[3];
-        self.edge_ori[0]  = eo[3];
+        // edges: cycle (0 1 2 3) 時計回り
+        self.edge_perm[0] = ep[1];
+        self.edge_ori[0]  = eo[1];
 
-        self.edge_perm[1] = ep[0];
-        self.edge_ori[1]  = eo[0];
+        self.edge_perm[1] = ep[2];
+        self.edge_ori[1]  = eo[2];
 
-        self.edge_perm[2] = ep[1];
-        self.edge_ori[2]  = eo[1];
+        self.edge_perm[2] = ep[3];
+        self.edge_ori[2]  = eo[3];
 
-        self.edge_perm[3] = ep[2];
-        self.edge_ori[3]  = eo[2];
+        self.edge_perm[3] = ep[0];
+        self.edge_ori[3]  = eo[0];
 
         // 残りの edges
         self.edge_perm[4] = ep[4];
@@ -234,7 +130,8 @@ impl Cube {
         self.corner_perm[3] = cp[3];
         self.corner_ori[3]  = co[3];
 
-        // corners: cycle (4 5 6 7)
+        // corners: cycle (4 5 6 7) 時計回り(下から見て)
+        // 結果: [0, 1, 2, 3, 7, 4, 5, 6]
         self.corner_perm[4] = cp[7];
         self.corner_ori[4]  = co[7];
 
@@ -265,10 +162,7 @@ impl Cube {
         self.edge_perm[7] = ep[7];
         self.edge_ori[7]  = eo[7];
 
-        // edges: cycle (8 9 10 11)
-        self.edge_perm[8]  = ep[11];
-        self.edge_ori[8]   = eo[11];
-
+        // edges: cycle (8 9 10 11) 時計回り: 8→9, 9→10, 10→11, 11→8
         self.edge_perm[9]  = ep[8];
         self.edge_ori[9]   = eo[8];
 
@@ -277,6 +171,9 @@ impl Cube {
 
         self.edge_perm[11] = ep[10];
         self.edge_ori[11]  = eo[10];
+
+        self.edge_perm[8]  = ep[11];
+        self.edge_ori[8]   = eo[11];
     }
 
     // ---------- L 面：corner (0 3 7 4), edge (3 7 11 4) ----------
@@ -288,18 +185,19 @@ impl Cube {
         let ep = self.edge_perm;
         let eo = self.edge_ori;
 
-        // corners: cycle (0 3 7 4) with twist [+1,+2,+1,+2]
-        self.corner_perm[0] = cp[4];
-        self.corner_ori[0]  = (co[4] + 1) % 3;
+        // corners: cycle (0 3 7 4) 時計回り(左から見て) with twist
+        // 結果: [3, ..., 7, 4, 0], ori: [2, 0, 0, 1, 1, 0, 0, 2]
+        self.corner_perm[0] = cp[3];
+        self.corner_ori[0]  = (co[3] + 2) % 3;
 
-        self.corner_perm[3] = cp[0];
-        self.corner_ori[3]  = (co[0] + 2) % 3;
+        self.corner_perm[3] = cp[7];
+        self.corner_ori[3]  = (co[7] + 1) % 3;
 
-        self.corner_perm[7] = cp[3];
-        self.corner_ori[7]  = (co[3] + 1) % 3;
+        self.corner_perm[7] = cp[4];
+        self.corner_ori[7]  = (co[4] + 2) % 3;
 
-        self.corner_perm[4] = cp[7];
-        self.corner_ori[4]  = (co[7] + 2) % 3;
+        self.corner_perm[4] = cp[0];
+        self.corner_ori[4]  = (co[0] + 1) % 3;
 
         // 他の corners はそのまま
         self.corner_perm[1] = cp[1];
@@ -311,18 +209,19 @@ impl Cube {
         self.corner_perm[6] = cp[6];
         self.corner_ori[6]  = co[6];
 
-        // edges: cycle (3 7 11 4) — flip はしない
-        self.edge_perm[3]  = ep[4];
-        self.edge_ori[3]   = eo[4];
+        // edges: cycle (3 7 11 4) 時計回り(左から見て)
+        // 結果: [7, ..., 11, 4, 3]
+        self.edge_perm[3]  = ep[7];
+        self.edge_ori[3]   = eo[7];
 
-        self.edge_perm[7]  = ep[3];
-        self.edge_ori[7]   = eo[3];
+        self.edge_perm[7]  = ep[11];
+        self.edge_ori[7]   = eo[11];
 
-        self.edge_perm[11] = ep[7];
-        self.edge_ori[11]  = eo[7];
+        self.edge_perm[11] = ep[4];
+        self.edge_ori[11]  = eo[4];
 
-        self.edge_perm[4]  = ep[11];
-        self.edge_ori[4]   = eo[11];
+        self.edge_perm[4]  = ep[3];
+        self.edge_ori[4]   = eo[3];
 
         // 他の edges はそのまま
         self.edge_perm[0] = ep[0];
@@ -352,7 +251,8 @@ impl Cube {
         let ep = self.edge_perm;
         let eo = self.edge_ori;
 
-        // corners: cycle (1 2 6 5) with twist [+1,+2,+1,+2]
+        // corners: cycle (1 2 6 5) 時計回り(右から見て) with twist
+        // 結果: [., 5, 1, ., ., 6, 2, .]
         self.corner_perm[1] = cp[5];
         self.corner_ori[1]  = (co[5] + 1) % 3;
 
@@ -375,7 +275,8 @@ impl Cube {
         self.corner_perm[7] = cp[7];
         self.corner_ori[7]  = co[7];
 
-        // edges: cycle (1 6 9 5) — flip はしない
+        // edges: cycle (1 6 9 5) 時計回り(右から見て)
+        // 結果: [., 5, ., ., ., 1, 6, ., ., 9, ., .]
         self.edge_perm[1] = ep[5];
         self.edge_ori[1]  = eo[5];
 
@@ -416,9 +317,10 @@ impl Cube {
         let ep = self.edge_perm;
         let eo = self.edge_ori;
 
-        // corners: cycle (0 1 5 4) with twist [+1,+2,+1,+2]
+        // corners: cycle (0 1 5 4) 時計回り(前から見て) with twist
+        // 結果: [4, 0, ., ., 1, 5, ., .], ori: [2, 2, 1, 1, 0, 0, 0, 0]
         self.corner_perm[0] = cp[4];
-        self.corner_ori[0]  = (co[4] + 1) % 3;
+        self.corner_ori[0]  = (co[4] + 2) % 3;
 
         self.corner_perm[1] = cp[0];
         self.corner_ori[1]  = (co[0] + 2) % 3;
@@ -427,7 +329,7 @@ impl Cube {
         self.corner_ori[5]  = (co[1] + 1) % 3;
 
         self.corner_perm[4] = cp[5];
-        self.corner_ori[4]  = (co[5] + 2) % 3;
+        self.corner_ori[4]  = (co[5] + 1) % 3;
 
         // 他の corners はそのまま
         self.corner_perm[2] = cp[2];
@@ -439,7 +341,8 @@ impl Cube {
         self.corner_perm[7] = cp[7];
         self.corner_ori[7]  = co[7];
 
-        // edges: cycle (0 5 8 4) — これらは flip する
+        // edges: cycle (0 5 8 4) 時計回り(前から見て) — flip する
+        // 結果: [4, ., ., ., 0, 5, ., ., 8, ., ., .]
         self.edge_perm[0] = ep[4];
         self.edge_ori[0]  = eo[4] ^ 1;
 
@@ -480,18 +383,19 @@ impl Cube {
         let ep = self.edge_perm;
         let eo = self.edge_ori;
 
-        // corners: cycle (3 2 6 7) with twist [+1,+2,+1,+2]
-        self.corner_perm[3] = cp[7];
-        self.corner_ori[3]  = (co[7] + 1) % 3;
+        // corners: cycle (3 2 6 7) 時計回り(後ろから見て) with twist
+        // 結果: [., ., 2, 6, ., ., 7, 3], ori: [0, 0, 0, 0, 0, 0, 1, 1, 2, 2]
+        self.corner_perm[3] = cp[2];
+        self.corner_ori[3]  = co[2];
 
-        self.corner_perm[2] = cp[3];
-        self.corner_ori[2]  = (co[3] + 2) % 3;
+        self.corner_perm[2] = cp[6];
+        self.corner_ori[2]  = co[6];
 
-        self.corner_perm[6] = cp[2];
-        self.corner_ori[6]  = (co[2] + 1) % 3;
+        self.corner_perm[6] = cp[7];
+        self.corner_ori[6]  = (co[7] + 1) % 3;
 
-        self.corner_perm[7] = cp[6];
-        self.corner_ori[7]  = (co[6] + 2) % 3;
+        self.corner_perm[7] = cp[3];
+        self.corner_ori[7]  = (co[3] + 2) % 3;
 
         // 他の corners
         self.corner_perm[0] = cp[0];
@@ -503,18 +407,19 @@ impl Cube {
         self.corner_perm[5] = cp[5];
         self.corner_ori[5]  = co[5];
 
-        // edges: cycle (2 6 10 7) — これらは flip する
-        self.edge_perm[2]  = ep[7];
-        self.edge_ori[2]   = eo[7] ^ 1;
+        // edges: cycle (2 6 10 7) 時計回り(後ろから見て) — flip する
+        // 結果: [., ., 6, ., ., ., 10, 2, ., ., 7, .]
+        self.edge_perm[2]  = ep[6];
+        self.edge_ori[2]   = eo[6] ^ 1;
 
-        self.edge_perm[6]  = ep[2];
-        self.edge_ori[6]   = eo[2] ^ 1;
+        self.edge_perm[6]  = ep[10];
+        self.edge_ori[6]   = eo[10] ^ 1;
 
-        self.edge_perm[10] = ep[6];
-        self.edge_ori[10]  = eo[6] ^ 1;
+        self.edge_perm[10] = ep[7];
+        self.edge_ori[10]  = eo[7] ^ 1;
 
-        self.edge_perm[7]  = ep[10];
-        self.edge_ori[7]   = eo[10] ^ 1;
+        self.edge_perm[7]  = ep[2];
+        self.edge_ori[7]   = eo[2] ^ 1;
 
         // 他の edges
         self.edge_perm[0] = ep[0];
@@ -534,18 +439,8 @@ impl Cube {
         self.edge_perm[11] = ep[11];
         self.edge_ori[11]  = eo[11];
     }
+
+    
+
 }
-ざっくりまとめ
-これで
-corner_perm, edge_perm はちゃんと各面 4-cycle
-corner_ori は L/R/F/B で twist（+1,+2,+1,+2）
-edge_ori は F/B で flip（XOR 1）
-各 move ごとに
-corner twist 総和 mod 3
-edge flip 総和 mod 2
-が保存されるようになってるので、**合法状態判定（legality）**にも使える。
-次にやると面白いのは：
-Cube::legality() を実装して「ありえない状態」を検出
-apply_move によるランダムスクランブル→ legality チェック
-cycles.rs で 3-cycle 分解して「このアルゴリズムは corner の 3-cycle + edge の 3-cycle だよ」みたいに表示
- */
+

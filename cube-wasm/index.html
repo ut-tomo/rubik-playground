@@ -225,53 +225,407 @@
             console.log('Scene setup complete');
         }
 
-        // Corner positions: [x, y, z] and their sticker faces [face1, face2, face3]
-        // Corner index mapping (standard Rubik's cube notation)
+        // Corner positions: [x, y, z]
+        // Corner index mapping (must match cube-core/src/state.rs)
+        // 0: UFL, 1: UFR, 2: UBR, 3: UBL, 4: DFL, 5: DFR, 6: DBR, 7: DBL
         const CORNER_POSITIONS = [
-            { pos: [1, 1, 1], faces: [3, 0, 4] },    // 0: URF (Right-Up-Front)
-            { pos: [-1, 1, 1], faces: [2, 0, 4] },   // 1: ULF (Up-Left-Front)
-            { pos: [-1, 1, -1], faces: [2, 0, 5] },  // 2: ULB (Up-Left-Back)
-            { pos: [1, 1, -1], faces: [3, 0, 5] },   // 3: URB (Up-Right-Back)
-            { pos: [1, -1, 1], faces: [3, 1, 4] },   // 4: DRF (Down-Right-Front)
-            { pos: [-1, -1, 1], faces: [2, 1, 4] },  // 5: DLF (Down-Left-Front)
-            { pos: [-1, -1, -1], faces: [2, 1, 5] }, // 6: DLB (Down-Left-Back)
-            { pos: [1, -1, -1], faces: [3, 1, 5] },  // 7: DRB (Down-Right-Back)
+            { pos: [-1, 1, 1] },   // 0: UFL
+            { pos: [1, 1, 1] },    // 1: UFR
+            { pos: [1, 1, -1] },   // 2: UBR
+            { pos: [-1, 1, -1] },  // 3: UBL
+            { pos: [-1, -1, 1] },  // 4: DFL
+            { pos: [1, -1, 1] },   // 5: DFR
+            { pos: [1, -1, -1] },  // 6: DBR
+            { pos: [-1, -1, -1] }, // 7: DBL
         ];
 
+        // 完全な色マッピング: CORNER_COLOR_MAP[perm][position][orientation]
+        // perm: どのキューブか (0-7)
+        // position: どの位置にあるか (0-7)
+        // orientation: どう回転しているか (0-2)
+        // 戻り値: { top, bottom, left, right, front, back } (-1は色なし)
+        // 色ID: 0=黄(U), 1=白(D), 2=青(L), 3=緑(R), 4=赤(F), 5=橙(B)
+        const CORNER_COLOR_MAP = {
+            // perm 0: UFL キューブ (黄・青・赤)
+            0: {
+                0: { // 位置0 (UFL)
+                    0: { top: 0, left: 2, front: 4, bottom: -1, right: -1, back: -1 },
+                    1: { top: 4, left: 0, front: 2, bottom: -1, right: -1, back: -1 },
+                    2: { top: 2, left: 4, front: 0, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 0, front: 2, right: 4, bottom: -1, left: -1, back: -1 },
+                    1: { top: 4, front: 0, right: 2, bottom: -1, left: -1, back: -1 },
+                    2: { top: 2, front: 4, right: 0, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 0, right: 2, back: 4, bottom: -1, left: -1, front: -1 },
+                    1: { top: 4, right: 0, back: 2, bottom: -1, left: -1, front: -1 },
+                    2: { top: 2, right: 4, back: 0, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 0, back: 2, left: 4, bottom: -1, right: -1, front: -1 },
+                    1: { top: 4, back: 0, left: 2, bottom: -1, right: -1, front: -1 },
+                    2: { top: 2, back: 4, left: 0, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 0, left: 2, front: 4, top: -1, right: -1, back: -1 },
+                    1: { bottom: 2, left: 0, front: 4, top: -1, right: -1, back: -1 },
+                    2: { bottom: 2, left: 4, front: 0, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 0, front: 4, right: 2, top: -1, left: -1, back: -1 },
+                    1: { bottom: 4, front: 0, right: 2, top: -1, left: -1, back: -1 },
+                    2: { bottom: 2, front: 4, right: 0, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 0, right: 2, back: 4, top: -1, left: -1, front: -1 },
+                    1: { bottom: 4, right: 0, back: 2, top: -1, left: -1, front: -1 },
+                    2: { bottom: 2, right: 0, back: 4, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 0, back: 4, left: 2, top: -1, right: -1, front: -1 },
+                    1: { bottom: 4, back: 0, left: 2, top: -1, right: -1, front: -1 },
+                    2: { bottom: 2, back: 4, left: 0, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 1: UFR キューブ (黄・赤・緑)
+            1: {
+                0: { // 位置0 (UFL)
+                    0: { top: 0, left: 4, front: 3, bottom: -1, right: -1, back: -1 },
+                    1: { top: 3, left: 0, front: 4, bottom: -1, right: -1, back: -1 },
+                    2: { top: 4, left: 3, front: 0, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 0, front: 4, right: 3, bottom: -1, left: -1, back: -1 },
+                    1: { top: 3, front: 0, right: 4, bottom: -1, left: -1, back: -1 },
+                    2: { top: 4, front: 3, right: 0, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 0, right: 4, back: 3, bottom: -1, left: -1, front: -1 },
+                    1: { top: 3, right: 0, back: 4, bottom: -1, left: -1, front: -1 },
+                    2: { top: 4, right: 3, back: 0, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 0, back: 4, left: 3, bottom: -1, right: -1, front: -1 },
+                    1: { top: 3, back: 0, left: 4, bottom: -1, right: -1, front: -1 },
+                    2: { top: 4, back: 3, left: 0, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 0, left: 4, front: 3, top: -1, right: -1, back: -1 },
+                    1: { bottom: 4, left: 0, front: 3, top: -1, right: -1, back: -1 },
+                    2: { bottom: 3, left: 4, front: 0, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 0, front: 4, right: 3, top: -1, left: -1, back: -1 },
+                    1: { bottom: 4, front: 0, right: 3, top: -1, left: -1, back: -1 },
+                    2: { bottom: 3, front: 4, right: 0, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 0, right: 4, back: 3, top: -1, left: -1, front: -1 },
+                    1: { bottom: 4, right: 0, back: 3, top: -1, left: -1, front: -1 },
+                    2: { bottom: 3, right: 4, back: 0, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 0, back: 4, left: 3, top: -1, right: -1, front: -1 },
+                    1: { bottom: 4, back: 0, left: 3, top: -1, right: -1, front: -1 },
+                    2: { bottom: 3, back: 4, left: 0, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 2: UBR キューブ (黄・緑・橙)
+            2: {
+                0: { // 位置0 (UFL)
+                    0: { top: 0, left: 3, front: 5, bottom: -1, right: -1, back: -1 },
+                    1: { top: 5, left: 0, front: 3, bottom: -1, right: -1, back: -1 },
+                    2: { top: 3, left: 5, front: 0, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 0, front: 3, right: 5, bottom: -1, left: -1, back: -1 },
+                    1: { top: 5, front: 0, right: 3, bottom: -1, left: -1, back: -1 },
+                    2: { top: 3, front: 5, right: 0, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 0, right: 3, back: 5, bottom: -1, left: -1, front: -1 },
+                    1: { top: 5, right: 0, back: 3, bottom: -1, left: -1, front: -1 },
+                    2: { top: 3, right: 5, back: 0, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 0, back: 3, left: 5, bottom: -1, right: -1, front: -1 },
+                    1: { top: 5, back: 0, left: 3, bottom: -1, right: -1, front: -1 },
+                    2: { top: 3, back: 5, left: 0, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 0, left: 3, front: 5, top: -1, right: -1, back: -1 },
+                    1: { bottom: 3, left: 0, front: 5, top: -1, right: -1, back: -1 },
+                    2: { bottom: 5, left: 3, front: 0, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 0, front: 3, right: 5, top: -1, left: -1, back: -1 },
+                    1: { bottom: 3, front: 0, right: 5, top: -1, left: -1, back: -1 },
+                    2: { bottom: 5, front: 3, right: 0, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 0, right: 3, back: 5, top: -1, left: -1, front: -1 },
+                    1: { bottom: 3, right: 0, back: 5, top: -1, left: -1, front: -1 },
+                    2: { bottom: 5, right: 3, back: 0, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 0, back: 3, left: 5, top: -1, right: -1, front: -1 },
+                    1: { bottom: 3, back: 0, left: 5, top: -1, right: -1, front: -1 },
+                    2: { bottom: 5, back: 3, left: 0, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 3: UBL キューブ (黄・橙・青)
+            3: {
+                0: { // 位置0 (UFL)
+                    0: { top: 0, left: 5, front: 2, bottom: -1, right: -1, back: -1 },
+                    1: { top: 2, left: 0, front: 5, bottom: -1, right: -1, back: -1 },
+                    2: { top: 5, left: 2, front: 0, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 0, front: 5, right: 2, bottom: -1, left: -1, back: -1 },
+                    1: { top: 2, front: 0, right: 5, bottom: -1, left: -1, back: -1 },
+                    2: { top: 5, front: 2, right: 0, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 0, right: 5, back: 2, bottom: -1, left: -1, front: -1 },
+                    1: { top: 2, right: 0, back: 5, bottom: -1, left: -1, front: -1 },
+                    2: { top: 5, right: 2, back: 0, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 0, back: 5, left: 2, bottom: -1, right: -1, front: -1 },
+                    1: { top: 2, back: 0, left: 5, bottom: -1, right: -1, front: -1 },
+                    2: { top: 5, back: 2, left: 0, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 0, left: 5, front: 2, top: -1, right: -1, back: -1 },
+                    1: { bottom: 5, left: 0, front: 2, top: -1, right: -1, back: -1 },
+                    2: { bottom: 2, left: 5, front: 0, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 0, front: 5, right: 2, top: -1, left: -1, back: -1 },
+                    1: { bottom: 5, front: 0, right: 2, top: -1, left: -1, back: -1 },
+                    2: { bottom: 2, front: 5, right: 0, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 0, right: 5, back: 2, top: -1, left: -1, front: -1 },
+                    1: { bottom: 5, right: 0, back: 2, top: -1, left: -1, front: -1 },
+                    2: { bottom: 2, right: 5, back: 0, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 0, back: 5, left: 2, top: -1, right: -1, front: -1 },
+                    1: { bottom: 5, back: 0, left: 2, top: -1, right: -1, front: -1 },
+                    2: { bottom: 2, back: 5, left: 0, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 4: DFL キューブ (白・青・赤)
+            4: {
+                0: { // 位置0 (UFL)
+                    0: { top: 1, left: 2, front: 4, bottom: -1, right: -1, back: -1 },
+                    1: { top: 4, left: 1, front: 2, bottom: -1, right: -1, back: -1 },
+                    2: { top: 2, left: 4, front: 1, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 1, front: 2, right: 4, bottom: -1, left: -1, back: -1 },
+                    1: { top: 4, front: 1, right: 2, bottom: -1, left: -1, back: -1 },
+                    2: { top: 2, front: 4, right: 1, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 1, right: 2, back: 4, bottom: -1, left: -1, front: -1 },
+                    1: { top: 4, right: 1, back: 2, bottom: -1, left: -1, front: -1 },
+                    2: { top: 2, right: 4, back: 1, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 1, back: 2, left: 4, bottom: -1, right: -1, front: -1 },
+                    1: { top: 4, back: 1, left: 2, bottom: -1, right: -1, front: -1 },
+                    2: { top: 2, back: 4, left: 1, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 1, left: 2, front: 4, top: -1, right: -1, back: -1 },
+                    1: { bottom: 2, left: 1, front: 4, top: -1, right: -1, back: -1 },
+                    2: { bottom: 4, left: 2, front: 1, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 1, front: 2, right: 4, top: -1, left: -1, back: -1 },
+                    1: { bottom: 2, front: 1, right: 4, top: -1, left: -1, back: -1 },
+                    2: { bottom: 4, front: 2, right: 1, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 1, right: 2, back: 4, top: -1, left: -1, front: -1 },
+                    1: { bottom: 2, right: 1, back: 4, top: -1, left: -1, front: -1 },
+                    2: { bottom: 4, right: 2, back: 1, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 1, back: 2, left: 4, top: -1, right: -1, front: -1 },
+                    1: { bottom: 2, back: 1, left: 4, top: -1, right: -1, front: -1 },
+                    2: { bottom: 4, back: 2, left: 1, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 5: DFR キューブ (白・赤・緑)
+            5: {
+                0: { // 位置0 (UFL)
+                    0: { top: 1, left: 4, front: 3, bottom: -1, right: -1, back: -1 },
+                    1: { top: 3, left: 1, front: 4, bottom: -1, right: -1, back: -1 },
+                    2: { top: 4, left: 3, front: 1, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 1, front: 4, right: 3, bottom: -1, left: -1, back: -1 },
+                    1: { top: 3, front: 1, right: 4, bottom: -1, left: -1, back: -1 },
+                    2: { top: 4, front: 3, right: 1, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 1, right: 4, back: 3, bottom: -1, left: -1, front: -1 },
+                    1: { top: 3, right: 1, back: 4, bottom: -1, left: -1, front: -1 },
+                    2: { top: 4, right: 3, back: 1, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 1, back: 4, left: 3, bottom: -1, right: -1, front: -1 },
+                    1: { top: 3, back: 1, left: 4, bottom: -1, right: -1, front: -1 },
+                    2: { top: 4, back: 3, left: 1, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 1, left: 4, front: 3, top: -1, right: -1, back: -1 },
+                    1: { bottom: 4, left: 1, front: 3, top: -1, right: -1, back: -1 },
+                    2: { bottom: 3, left: 4, front: 1, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 1, front: 4, right: 3, top: -1, left: -1, back: -1 },
+                    1: { bottom: 4, front: 1, right: 3, top: -1, left: -1, back: -1 },
+                    2: { bottom: 3, front: 4, right: 1, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 1, right: 4, back: 3, top: -1, left: -1, front: -1 },
+                    1: { bottom: 4, right: 1, back: 3, top: -1, left: -1, front: -1 },
+                    2: { bottom: 3, right: 4, back: 1, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 1, back: 4, left: 3, top: -1, right: -1, front: -1 },
+                    1: { bottom: 4, back: 1, left: 3, top: -1, right: -1, front: -1 },
+                    2: { bottom: 3, back: 4, left: 1, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 6: DBR キューブ (白・緑・橙)
+            6: {
+                0: { // 位置0 (UFL)
+                    0: { top: 1, left: 3, front: 5, bottom: -1, right: -1, back: -1 },
+                    1: { top: 5, left: 1, front: 3, bottom: -1, right: -1, back: -1 },
+                    2: { top: 3, left: 5, front: 1, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 1, front: 3, right: 5, bottom: -1, left: -1, back: -1 },
+                    1: { top: 5, front: 1, right: 3, bottom: -1, left: -1, back: -1 },
+                    2: { top: 3, front: 5, right: 1, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 1, right: 3, back: 5, bottom: -1, left: -1, front: -1 },
+                    1: { top: 5, right: 1, back: 3, bottom: -1, left: -1, front: -1 },
+                    2: { top: 3, right: 5, back: 1, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 1, back: 3, left: 5, bottom: -1, right: -1, front: -1 },
+                    1: { top: 5, back: 1, left: 3, bottom: -1, right: -1, front: -1 },
+                    2: { top: 3, back: 5, left: 1, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 1, left: 3, front: 5, top: -1, right: -1, back: -1 },
+                    1: { bottom: 3, left: 1, front: 5, top: -1, right: -1, back: -1 },
+                    2: { bottom: 5, left: 3, front: 1, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 1, front: 3, right: 5, top: -1, left: -1, back: -1 },
+                    1: { bottom: 3, front: 1, right: 5, top: -1, left: -1, back: -1 },
+                    2: { bottom: 5, front: 3, right: 1, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 1, right: 3, back: 5, top: -1, left: -1, front: -1 },
+                    1: { bottom: 3, right: 1, back: 5, top: -1, left: -1, front: -1 },
+                    2: { bottom: 5, right: 3, back: 1, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 1, back: 3, left: 5, top: -1, right: -1, front: -1 },
+                    1: { bottom: 3, back: 1, left: 5, top: -1, right: -1, front: -1 },
+                    2: { bottom: 5, back: 3, left: 1, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 7: DBL キューブ (白・橙・青)
+            7: {
+                0: { // 位置0 (UFL)
+                    0: { top: 1, left: 5, front: 2, bottom: -1, right: -1, back: -1 },
+                    1: { top: 2, left: 1, front: 5, bottom: -1, right: -1, back: -1 },
+                    2: { top: 5, left: 2, front: 1, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 1, front: 5, right: 2, bottom: -1, left: -1, back: -1 },
+                    1: { top: 2, front: 1, right: 5, bottom: -1, left: -1, back: -1 },
+                    2: { top: 5, front: 2, right: 1, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 1, right: 5, back: 2, bottom: -1, left: -1, front: -1 },
+                    1: { top: 2, right: 1, back: 5, bottom: -1, left: -1, front: -1 },
+                    2: { top: 5, right: 2, back: 1, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 1, back: 5, left: 2, bottom: -1, right: -1, front: -1 },
+                    1: { top: 2, back: 1, left: 5, bottom: -1, right: -1, front: -1 },
+                    2: { top: 5, back: 2, left: 1, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 1, left: 5, front: 2, top: -1, right: -1, back: -1 },
+                    1: { bottom: 5, left: 1, front: 2, top: -1, right: -1, back: -1 },
+                    2: { bottom: 2, left: 5, front: 1, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 1, front: 5, right: 2, top: -1, left: -1, back: -1 },
+                    1: { bottom: 5, front: 1, right: 2, top: -1, left: -1, back: -1 },
+                    2: { bottom: 2, front: 5, right: 1, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 1, right: 5, back: 2, top: -1, left: -1, front: -1 },
+                    1: { bottom: 5, right: 1, back: 2, top: -1, left: -1, front: -1 },
+                    2: { bottom: 2, right: 5, back: 1, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 1, back: 5, left: 2, top: -1, right: -1, front: -1 },
+                    1: { bottom: 5, back: 1, left: 2, top: -1, right: -1, front: -1 },
+                    2: { bottom: 2, back: 5, left: 1, top: -1, right: -1, front: -1 }
+                }
+            }
+        };
+
         // Edge positions: [x, y, z] and their sticker faces [face1, face2]
+        // Edge index mapping (must match cube-core/src/state.rs)
+        // 0: UF, 1: UR, 2: UB, 3: UL, 4: FL, 5: FR, 6: BR, 7: BL, 8: DF, 9: DR, 10: DB, 11: DL
+        // faces の順序は、U/D面のエッジは[上下面, 側面]、中段のエッジは[前後面, 左右面]
         const EDGE_POSITIONS = [
             { pos: [0, 1, 1], faces: [0, 4] },    // 0: UF (Up-Front)
-            { pos: [-1, 1, 0], faces: [2, 0] },   // 1: UL (Up-Left)
+            { pos: [1, 1, 0], faces: [0, 3] },    // 1: UR (Up-Right)
             { pos: [0, 1, -1], faces: [0, 5] },   // 2: UB (Up-Back)
-            { pos: [1, 1, 0], faces: [3, 0] },    // 3: UR (Up-Right)
-            { pos: [0, -1, 1], faces: [1, 4] },   // 4: DF (Down-Front)
-            { pos: [-1, -1, 0], faces: [2, 1] },  // 5: DL (Down-Left)
-            { pos: [0, -1, -1], faces: [1, 5] },  // 6: DB (Down-Back)
-            { pos: [1, -1, 0], faces: [3, 1] },   // 7: DR (Down-Right)
-            { pos: [1, 0, 1], faces: [3, 4] },    // 8: FR (Front-Right)
-            { pos: [-1, 0, 1], faces: [2, 4] },   // 9: FL (Front-Left)
-            { pos: [-1, 0, -1], faces: [2, 5] },  // 10: BL (Back-Left)
-            { pos: [1, 0, -1], faces: [3, 5] },   // 11: BR (Back-Right)
+            { pos: [-1, 1, 0], faces: [0, 2] },   // 3: UL (Up-Left)
+            { pos: [-1, 0, 1], faces: [4, 2] },   // 4: FL (Front-Left)
+            { pos: [1, 0, 1], faces: [4, 3] },    // 5: FR (Front-Right)
+            { pos: [1, 0, -1], faces: [5, 3] },   // 6: BR (Back-Right)
+            { pos: [-1, 0, -1], faces: [5, 2] },  // 7: BL (Back-Left)
+            { pos: [0, -1, 1], faces: [1, 4] },   // 8: DF (Down-Front)
+            { pos: [1, -1, 0], faces: [1, 3] },   // 9: DR (Down-Right)
+            { pos: [0, -1, -1], faces: [1, 5] },  // 10: DB (Down-Back)
+            { pos: [-1, -1, 0], faces: [1, 2] },  // 11: DL (Down-Left)
         ];
 
         // Get colors for a corner piece based on state
-        // Returns an object with colors for each face: {right, left, top, bottom, front, back}
-        // 色IDを返す（0-5の数値、または黒の場合は-1）
         function getCornerColors(cornerIndex, state) {
             const perm = state.corner_perm[cornerIndex];
             const ori = state.corner_ori[cornerIndex];
             
-            // Original corner's faces
-            const originalFaces = CORNER_POSITIONS[perm].faces;
+            // CORNER_COLOR_MAPから直接色を取得
+            // まだ全てのpermが定義されていない場合は、perm 0のパターンで仮実装
+            if (CORNER_COLOR_MAP[perm] && CORNER_COLOR_MAP[perm][cornerIndex]) {
+                return CORNER_COLOR_MAP[perm][cornerIndex][ori];
+            }
             
-            // Rotate faces based on orientation (0, 1, or 2)
-            const rotatedFaces = [
-                originalFaces[ori % 3],
-                originalFaces[(ori + 1) % 3],
-                originalFaces[(ori + 2) % 3]
-            ];
-            
-            const result = {
+            // フォールバック: perm 0のパターンを使用（仮実装）
+            // TODO: 全てのperm 1-7を定義したら、このフォールバックは削除
+            console.warn(`CORNER_COLOR_MAP[${perm}][${cornerIndex}][${ori}] not defined, using fallback`);
+            return {
                 right: -1,
                 left: -1,
                 top: -1,
@@ -279,48 +633,6 @@
                 front: -1,
                 back: -1
             };
-            
-            // 位置に基づいて3色を配置
-            // 各コーナーは3つの面を持つ
-            const cornerDef = CORNER_POSITIONS[cornerIndex];
-            const [x, y, z] = cornerDef.pos;
-            
-            // 明示的なマッピング（位置ごとに定義）
-            if (cornerIndex === 0) { // URF: 右・上・前
-                result.right = rotatedFaces[0];
-                result.top = rotatedFaces[1];
-                result.front = rotatedFaces[2];
-            } else if (cornerIndex === 1) { // ULF: 左・上・前
-                result.left = rotatedFaces[0];
-                result.top = rotatedFaces[1];
-                result.front = rotatedFaces[2];
-            } else if (cornerIndex === 2) { // ULB: 左・上・奥
-                result.left = rotatedFaces[0];
-                result.top = rotatedFaces[1];
-                result.back = rotatedFaces[2];
-            } else if (cornerIndex === 3) { // URB: 右・上・奥
-                result.right = rotatedFaces[0];
-                result.top = rotatedFaces[1];
-                result.back = rotatedFaces[2];
-            } else if (cornerIndex === 4) { // DRF: 右・下・前
-                result.right = rotatedFaces[0];
-                result.bottom = rotatedFaces[1];
-                result.front = rotatedFaces[2];
-            } else if (cornerIndex === 5) { // DLF: 左・下・前
-                result.left = rotatedFaces[0];
-                result.bottom = rotatedFaces[1];
-                result.front = rotatedFaces[2];
-            } else if (cornerIndex === 6) { // DLB: 左・下・奥
-                result.left = rotatedFaces[0];
-                result.bottom = rotatedFaces[1];
-                result.back = rotatedFaces[2];
-            } else if (cornerIndex === 7) { // DRB: 右・下・奥
-                result.right = rotatedFaces[0];
-                result.bottom = rotatedFaces[1];
-                result.back = rotatedFaces[2];
-            }
-            
-            return result;
         }
 
         // Get colors for an edge piece based on state
@@ -348,42 +660,43 @@
             };
             
             // 明示的なマッピング（位置ごとに定義）
+            // Rust側の定義: 0: UF, 1: UR, 2: UB, 3: UL, 4: FL, 5: FR, 6: BR, 7: BL, 8: DF, 9: DR, 10: DB, 11: DL
             if (edgeIndex === 0) { // UF: 上と前
                 result.top = color1;
                 result.front = color2;
-            } else if (edgeIndex === 1) { // UL: 上と左
+            } else if (edgeIndex === 1) { // UR: 上と右
                 result.top = color1;
-                result.left = color2;
+                result.right = color2;
             } else if (edgeIndex === 2) { // UB: 上と奥
                 result.top = color1;
                 result.back = color2;
-            } else if (edgeIndex === 3) { // UR: 上と右
+            } else if (edgeIndex === 3) { // UL: 上と左
                 result.top = color1;
+                result.left = color2;
+            } else if (edgeIndex === 4) { // FL: 前と左
+                result.front = color1;
+                result.left = color2;
+            } else if (edgeIndex === 5) { // FR: 前と右
+                result.front = color1;
                 result.right = color2;
-            } else if (edgeIndex === 4) { // DF: 下と前
+            } else if (edgeIndex === 6) { // BR: 奥と右
+                result.back = color1;
+                result.right = color2;
+            } else if (edgeIndex === 7) { // BL: 奥と左
+                result.back = color1;
+                result.left = color2;
+            } else if (edgeIndex === 8) { // DF: 下と前
                 result.bottom = color1;
                 result.front = color2;
-            } else if (edgeIndex === 5) { // DL: 下と左
+            } else if (edgeIndex === 9) { // DR: 下と右
                 result.bottom = color1;
-                result.left = color2;
-            } else if (edgeIndex === 6) { // DB: 下と奥
+                result.right = color2;
+            } else if (edgeIndex === 10) { // DB: 下と奥
                 result.bottom = color1;
                 result.back = color2;
-            } else if (edgeIndex === 7) { // DR: 下と右
+            } else if (edgeIndex === 11) { // DL: 下と左
                 result.bottom = color1;
-                result.right = color2;
-            } else if (edgeIndex === 8) { // FR: 前と右
-                result.front = color1;
-                result.right = color2;
-            } else if (edgeIndex === 9) { // FL: 前と左
-                result.front = color1;
                 result.left = color2;
-            } else if (edgeIndex === 10) { // BL: 奥と左
-                result.back = color1;
-                result.left = color2;
-            } else if (edgeIndex === 11) { // BR: 奥と右
-                result.back = color1;
-                result.right = color2;
             }
             
             return result;
