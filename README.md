@@ -13,7 +13,32 @@
 
 - **cube-core**: コアライブラリ（状態表現・群演算・アルゴリズム操作）
 - **cube-cli**: CLIツール（検証・実験用）
+- **cube-wasm**: WebAssembly + 3D可視化プレイグラウンド
 - **docs/**: GitHub Pagesデモサイト（JavaScript実装）
+
+## クイックスタート
+
+### ローカルで3Dプレイグラウンドを起動
+
+```bash
+# WASMをビルド
+cd cube-wasm
+wasm-pack build --target web
+
+# ローカルサーバーを起動
+python3 -m http.server 8000
+
+# ブラウザで開く
+# http://localhost:8000
+```
+
+または、ビルドスクリプトを使用:
+
+```bash
+cd cube-wasm
+./build.sh
+python3 -m http.server 8000
+```
 
 ## セットアップ
 
@@ -137,6 +162,7 @@ cargo run -p cube-cli
 - [x] **CLIツール**: 基本的な動作確認用
 - [x] **テストスイート**: 統合テスト7件
 - [x] **GitHub Pagesデモ**: JavaScript実装のデモサイト
+- [x] **WASM 3Dプレイグラウンド**: Three.jsによるインタラクティブな3D可視化
 
 ### 🚧 実装予定
 
@@ -149,10 +175,12 @@ cargo run -p cube-cli
 - [ ] **スクランブル生成**: ランダムな初期状態の生成
 
 #### Phase 2: WASM統合
-- [ ] **cube-wasmクレート**: wasm-bindgenを使ったバインディング
-- [ ] **WASMビルド環境**: wasm-packの設定
-- [ ] **JavaScriptインターフェース**: デモページからRust実装を呼び出し
-- [ ] **パフォーマンス最適化**: WASM向けの最適化
+- [x] **cube-wasmクレート**: wasm-bindgenを使ったバインディング
+- [x] **WASMビルド環境**: wasm-packの設定
+- [x] **JavaScriptインターフェース**: Rust実装をブラウザから呼び出し
+- [x] **3D可視化**: Three.jsによるインタラクティブなキューブ表示
+- [ ] **アニメーション**: 手の実行を滑らかに表示
+- [ ] **GitHub Pagesへの統合**: WASMプレイグラウンドの公開デプロイ
 
 #### Phase 3: 高度な機能
 - [ ] **G1/G2/G3分析**: サブグループの判定
@@ -181,29 +209,35 @@ cargo run -p cube-cli
 - アルゴリズム操作（逆手、交換子、共役）
 - 合法性チェックとサイクル分解
 
-### 🔄 Phase 2: 使いやすさの向上（次のステップ）
+### ✅ Phase 2: WASM統合（完了）
+デモページでRustコードを実際に動かす
+- wasm-packの設定
+- JavaScriptバインディング
+- Three.jsによる3D可視化
+
+### 🔄 Phase 3: 使いやすさの向上（次のステップ）
 - 手の表記パース（"R U R' U'" → アルゴリズム）
 - キューブの視覚的表現
 - アルゴリズムの簡約化
 - スクランブル生成
+- アニメーション機能
 
-### 🎯 Phase 3: WASM統合
-デモページでRustコードを実際に動かす
-- wasm-packの設定
-- JavaScriptバインディング
-- パフォーマンス最適化
+### 🎯 Phase 4: 高度な機能
+- G1/G2/G3分析とサブグループ判定
+- HTM/QTM距離の推定
+- パターンデータベース
 
-### 🚀 Phase 4: ソルバー実装
+### 🚀 Phase 5: ソルバー実装
 最適解探索アルゴリズムの実装
 - IDA*基本実装
 - パターンデータベース
 - Kociembaアルゴリズム
 
-### 🎨 Phase 5: UI/UX強化
-3D可視化とインタラクティブな操作
-- Three.js統合
+### 🎨 Phase 6: UI/UX強化
+さらなる可視化とインタラクティブ性の向上
 - アニメーション
 - インタラクティブ編集
+- GitHub Pagesへの統合デプロイ
 
 ## 技術スタック
 

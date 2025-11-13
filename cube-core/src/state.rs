@@ -13,13 +13,13 @@ impl Cube {
     pub fn identity () -> Self {
         Cube {
             corner_perm: [0, 1, 2, 3, 4, 5, 6, 7],
-            corner_ori: [0; 8],
+            corner_ori: [0; 8],  //0, 1, 2の3値で角のねじれ表現
             edge_perm: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-            edge_ori: [0; 12],
+            edge_ori: [0; 12], //0,1の2値で辺の反転表現
         }
     }
 
-    /// Check whether the cube is solved
+    //センターキューブは動かさないのでこれでOK
     pub fn is_solved(&self) -> bool {
         self.corner_perm == [0, 1, 2, 3, 4, 5, 6, 7]
             && self.corner_ori == [0; 8]
@@ -27,7 +27,6 @@ impl Cube {
             && self.edge_ori == [0; 12]
     }
 
-    /// Compute permutation parity (0 = even, 1 = odd)
     pub fn corner_parity(&self) -> u8 {
         parity(&self.corner_perm)
     }
@@ -36,10 +35,9 @@ impl Cube {
         parity(&self.edge_perm)
     }
 
-    /// Legality check: real cubes satisfy
-    /// - corner parity == edge parity
-    /// - total corner twist mod 3 == 0
-    /// - total edge flip  mod 2 == 0
+    // 辺の置換の偶奇と, 角の置換の偶奇は必ず一致する
+    // 角のねじれ総和 mod 3 == 0
+    // 辺の反転総和 mod 2 == 0
     pub fn is_legal(&self) -> bool {
         self.corner_parity() == self.edge_parity()
             && self.corner_ori.iter().copied().sum::<u8>() % 3 == 0
@@ -47,7 +45,10 @@ impl Cube {
     }
 }
 
-/// Compute the parity of a permutation of 0..n-1
+// 置換をサイクル分解して、そのサイクル長から逆順数の偶奇を求める
+// 長さ len のサイクルは、「len-1 回の交換（transposition）」で表せる。
+// すべてのサイクルについて len - 1 を足し合わせると、置換を生成するために必要な交換回数 inv が得られる（実際には「最小の」交換回数）。
+// 交換回数 inv が偶数なら偶置換、奇数なら奇置換。
 fn parity(perm: &[u8]) -> u8 {
     let n = perm.len();
     let mut visited = vec![false; n];

@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧊 Rubik's Cube Playground</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="loading">
+        <h1>🧊 Loading Rubik's Cube Playground...</h1>
+        <p id="loading-status">Initializing...</p>
+        <div style="margin-top: 20px;">
+            <div style="width: 300px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: white; transition: width 0.3s;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <div id="canvas-container"></div>
+        
+        <div id="controls">
+            <h1>🧊 Rubik's Cube</h1>
+            
+            <div id="status">
+                <strong>Status:</strong> <span id="solved-status">Solved ✓</span>
+            </div>
+
+            <h2>Quick Moves</h2>
+            <div class="move-buttons">
+                <button onclick="applyMove('U')">U</button>
+                <button onclick="applyMove('U2')">U2</button>
+                <button onclick="applyMove('U\'')">U'</button>
+                <button onclick="applyMove('D')">D</button>
+                <button onclick="applyMove('D2')">D2</button>
+                <button onclick="applyMove('D\'')">D'</button>
+                <button onclick="applyMove('L')">L</button>
+                <button onclick="applyMove('L2')">L2</button>
+                <button onclick="applyMove('L\'')">L'</button>
+                <button onclick="applyMove('R')">R</button>
+                <button onclick="applyMove('R2')">R2</button>
+                <button onclick="applyMove('R\'')">R'</button>
+                <button onclick="applyMove('F')">F</button>
+                <button onclick="applyMove('F2')">F2</button>
+                <button onclick="applyMove('F\'')">F'</button>
+                <button onclick="applyMove('B')">B</button>
+                <button onclick="applyMove('B2')">B2</button>
+                <button onclick="applyMove('B\'')">B'</button>
+            </div>
+
+            <h2>Algorithm</h2>
+            <div class="input-group">
+                <input type="text" id="algorithm-input" placeholder="例: R U R' U'" />
+                <div class="action-buttons">
+                    <button onclick="applyAlgorithm()">Apply</button>
+                    <button onclick="showInverse()">Inverse</button>
+                    <button onclick="resetCube()">Reset</button>
+                </div>
+            </div>
+
+            <h2>Advanced</h2>
+            <div class="input-group">
+                <input type="text" id="alg-a" placeholder="Algorithm A" />
+                <input type="text" id="alg-b" placeholder="Algorithm B" />
+                <div class="action-buttons">
+                    <button onclick="applyCommutator()">Commutator</button>
+                    <button onclick="applyConjugate()">Conjugate</button>
+                </div>
+            </div>
+
+            <h2>Info</h2>
+            <div class="info-section">
+                <div id="legality-info">Legality: ...</div>
+                <div id="state-info" style="margin-top: 10px; font-size: 0.8em;">State: ...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Three.js is now loaded, start immediately
+        console.log('Three.js loaded, starting initialization...');
+
+        // Global variables
+        let cube;
+        let scene, camera, renderer, controls;
+        let cubeGroup;
+        let wasmModule;
+
+        async function main() {
+            try {
+                const startTime = performance.now();
+                
+                updateProgress(10, 'Loading WASM module...');
+                console.log('Loading WASM module...');
+                const wasmStart = performance.now();
+                wasmModule = await import('./pkg/cube_wasm.js');
+                console.log(`WASM module loaded in ${(performance.now() - wasmStart).toFixed(0)}ms`);
+                
+                updateProgress(40, 'Initializing WASM...');
+                console.log('Initializing WASM...');
+                const initStart = performance.now();
+                await wasmModule.default();
+                console.log(`WASM initialized in ${(performance.now() - initStart).toFixed(0)}ms`);
+                
+                updateProgress(60, 'Setting up scene...');
+                console.log('Creating cube and scene...');
+                const sceneStart = performance.now();
+                
+                // Three.js is already loaded via import at top
+                updateProgress(80, 'Creating visualization...');
+                initApp();
+                console.log(`Scene setup in ${(performance.now() - sceneStart).toFixed(0)}ms`);
+                
+                updateProgress(100, 'Ready!');
+                console.log(`Total initialization time: ${(performance.now() - startTime).toFixed(0)}ms`);
+                
+                // Hide loading and show app
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.display = 'grid';
+                
+                // Wait for layout to complete, then resize renderer
+                setTimeout(() => {
+                    const container = document.getElementById('canvas-container');
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    console.log('Container size after layout:', width, 'x', height);
+                    
+                    if (width > 0 && height > 0) {
+                        camera.aspect = width / height;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(width, height);
+                        console.log('Renderer resized to:', width, 'x', height);
+                    }
+                }, 50);
+                
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                document.getElementById('loading').innerHTML = `
+                    <h2>❌ Error Loading</h2>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        function updateProgress(percent, status) {
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('loading-status').textContent = status;
+        }
+
+        function initApp() {
+            // Create cube
+            cube = new wasmModule.WasmCube();
+            window.cube = cube;
+            window.wasmModule = wasmModule;
+
+            // Setup Three.js scene
+            setupScene();
+
+            // Create initial visualization
+            updateVisualization();
+
+            // Start animation loop
+            startAnimation();
+
+            console.log('App initialized successfully!');
+        }
+
+        function setupScene() {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+
+            // Camera - use temporary aspect ratio, will be corrected after layout
+            camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer - start with minimum size, will be resized after layout
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(100, 100);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+            console.log('Initial renderer size: 100x100 (will be resized after layout)');
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight1.position.set(5, 10, 5);
+            scene.add(directionalLight1);
+
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            directionalLight2.position.set(-5, -5, -5);
+            scene.add(directionalLight2);
+
+            // Window resize
+            window.addEventListener('resize', () => {
+                const container = document.getElementById('canvas-container');
+                const aspect = container.clientWidth / container.clientHeight;
+                camera.aspect = aspect;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            console.log('Scene setup complete');
+        }
+
+        // Corner positions: [x, y, z] and their sticker faces [face1, face2, face3]
+        // Corner index mapping (standard Rubik's cube notation)
+        const CORNER_POSITIONS = [
+            { pos: [1, 1, 1], faces: [3, 0, 4] },    // 0: URF (Right-Up-Front)
+            { pos: [-1, 1, 1], faces: [2, 0, 4] },   // 1: ULF (Up-Left-Front)
+            { pos: [-1, 1, -1], faces: [2, 0, 5] },  // 2: ULB (Up-Left-Back)
+            { pos: [1, 1, -1], faces: [3, 0, 5] },   // 3: URB (Up-Right-Back)
+            { pos: [1, -1, 1], faces: [3, 1, 4] },   // 4: DRF (Down-Right-Front)
+            { pos: [-1, -1, 1], faces: [2, 1, 4] },  // 5: DLF (Down-Left-Front)
+            { pos: [-1, -1, -1], faces: [2, 1, 5] }, // 6: DLB (Down-Left-Back)
+            { pos: [1, -1, -1], faces: [3, 1, 5] },  // 7: DRB (Down-Right-Back)
+        ];
+
+        // Edge positions: [x, y, z] and their sticker faces [face1, face2]
+        const EDGE_POSITIONS = [
+            { pos: [0, 1, 1], faces: [0, 4] },    // 0: UF (Up-Front)
+            { pos: [-1, 1, 0], faces: [2, 0] },   // 1: UL (Up-Left)
+            { pos: [0, 1, -1], faces: [0, 5] },   // 2: UB (Up-Back)
+            { pos: [1, 1, 0], faces: [3, 0] },    // 3: UR (Up-Right)
+            { pos: [0, -1, 1], faces: [1, 4] },   // 4: DF (Down-Front)
+            { pos: [-1, -1, 0], faces: [2, 1] },  // 5: DL (Down-Left)
+            { pos: [0, -1, -1], faces: [1, 5] },  // 6: DB (Down-Back)
+            { pos: [1, -1, 0], faces: [3, 1] },   // 7: DR (Down-Right)
+            { pos: [1, 0, 1], faces: [3, 4] },    // 8: FR (Front-Right)
+            { pos: [-1, 0, 1], faces: [2, 4] },   // 9: FL (Front-Left)
+            { pos: [-1, 0, -1], faces: [2, 5] },  // 10: BL (Back-Left)
+            { pos: [1, 0, -1], faces: [3, 5] },   // 11: BR (Back-Right)
+        ];
+
+        // Get colors for a corner piece based on state
+        // Returns an object with colors for each face: {right, left, top, bottom, front, back}
+        // 色IDを返す（0-5の数値、または黒の場合は-1）
+        function getCornerColors(cornerIndex, state) {
+            const perm = state.corner_perm[cornerIndex];
+            const ori = state.corner_ori[cornerIndex];
+            
+            // Original corner's faces
+            const originalFaces = CORNER_POSITIONS[perm].faces;
+            
+            // Rotate faces based on orientation (0, 1, or 2)
+            const rotatedFaces = [
+                originalFaces[ori % 3],
+                originalFaces[(ori + 1) % 3],
+                originalFaces[(ori + 2) % 3]
+            ];
+            
+            const result = {
+                right: -1,
+                left: -1,
+                top: -1,
+                bottom: -1,
+                front: -1,
+                back: -1
+            };
+            
+            // 位置に基づいて3色を配置
+            // 各コーナーは3つの面を持つ
+            const cornerDef = CORNER_POSITIONS[cornerIndex];
+            const [x, y, z] = cornerDef.pos;
+            
+            // 明示的なマッピング（位置ごとに定義）
+            if (cornerIndex === 0) { // URF: 右・上・前
+                result.right = rotatedFaces[0];
+                result.top = rotatedFaces[1];
+                result.front = rotatedFaces[2];
+            } else if (cornerIndex === 1) { // ULF: 左・上・前
+                result.left = rotatedFaces[0];
+                result.top = rotatedFaces[1];
+                result.front = rotatedFaces[2];
+            } else if (cornerIndex === 2) { // ULB: 左・上・奥
+                result.left = rotatedFaces[0];
+                result.top = rotatedFaces[1];
+                result.back = rotatedFaces[2];
+            } else if (cornerIndex === 3) { // URB: 右・上・奥
+                result.right = rotatedFaces[0];
+                result.top = rotatedFaces[1];
+                result.back = rotatedFaces[2];
+            } else if (cornerIndex === 4) { // DRF: 右・下・前
+                result.right = rotatedFaces[0];
+                result.bottom = rotatedFaces[1];
+                result.front = rotatedFaces[2];
+            } else if (cornerIndex === 5) { // DLF: 左・下・前
+                result.left = rotatedFaces[0];
+                result.bottom = rotatedFaces[1];
+                result.front = rotatedFaces[2];
+            } else if (cornerIndex === 6) { // DLB: 左・下・奥
+                result.left = rotatedFaces[0];
+                result.bottom = rotatedFaces[1];
+                result.back = rotatedFaces[2];
+            } else if (cornerIndex === 7) { // DRB: 右・下・奥
+                result.right = rotatedFaces[0];
+                result.bottom = rotatedFaces[1];
+                result.back = rotatedFaces[2];
+            }
+            
+            return result;
+        }
+
+        // Get colors for an edge piece based on state
+        // Returns an object with colors for each face: {right, left, top, bottom, front, back}
+        // 色IDを返す（0-5の数値、または黒の場合は-1）
+        function getEdgeColors(edgeIndex, state) {
+            const perm = state.edge_perm[edgeIndex];   // どのエッジがこの位置にあるか
+            const ori = state.edge_ori[edgeIndex];      // 向き (0 or 1)
+            
+            // この位置のエッジが持つべき2色（元の色）
+            const originalFaces = EDGE_POSITIONS[perm].faces;
+            
+            // oriが1なら反転
+            const [color1, color2] = ori === 1 ? 
+                [originalFaces[1], originalFaces[0]] : 
+                [originalFaces[0], originalFaces[1]];
+            
+            const result = {
+                right: -1,
+                left: -1,
+                top: -1,
+                bottom: -1,
+                front: -1,
+                back: -1
+            };
+            
+            // 明示的なマッピング（位置ごとに定義）
+            if (edgeIndex === 0) { // UF: 上と前
+                result.top = color1;
+                result.front = color2;
+            } else if (edgeIndex === 1) { // UL: 上と左
+                result.top = color1;
+                result.left = color2;
+            } else if (edgeIndex === 2) { // UB: 上と奥
+                result.top = color1;
+                result.back = color2;
+            } else if (edgeIndex === 3) { // UR: 上と右
+                result.top = color1;
+                result.right = color2;
+            } else if (edgeIndex === 4) { // DF: 下と前
+                result.bottom = color1;
+                result.front = color2;
+            } else if (edgeIndex === 5) { // DL: 下と左
+                result.bottom = color1;
+                result.left = color2;
+            } else if (edgeIndex === 6) { // DB: 下と奥
+                result.bottom = color1;
+                result.back = color2;
+            } else if (edgeIndex === 7) { // DR: 下と右
+                result.bottom = color1;
+                result.right = color2;
+            } else if (edgeIndex === 8) { // FR: 前と右
+                result.front = color1;
+                result.right = color2;
+            } else if (edgeIndex === 9) { // FL: 前と左
+                result.front = color1;
+                result.left = color2;
+            } else if (edgeIndex === 10) { // BL: 奥と左
+                result.back = color1;
+                result.left = color2;
+            } else if (edgeIndex === 11) { // BR: 奥と右
+                result.back = color1;
+                result.right = color2;
+            }
+            
+            return result;
+        }
+
+        function createCubeVisualization(state) {
+            console.log('Creating cube visualization...');
+            
+            // Remove old cube group if exists
+            if (cubeGroup) {
+                scene.remove(cubeGroup);
+                // Dispose of geometries and materials to free memory
+                cubeGroup.traverse((child) => {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(mat => mat.dispose());
+                        } else {
+                            child.material.dispose();
+                        }
+                    }
+                });
+                cubeGroup = null;
+            }
+            
+            cubeGroup = new THREE.Group();
+            
+            const cubeSize = 0.9;
+            const gap = 0.05;
+            const colorMap = {
+                0: 0xffff00, // Yellow (U - 上面)
+                1: 0xffffff, // White (D - 下面)
+                2: 0x0066ff, // Blue (L - 左面)
+                3: 0x00ff00, // Green (R - 右面)
+                4: 0xff0000, // Red (F - 前面) - より鮮明
+                5: 0xffa500, // Orange (B - 奥面) - より明るく
+            };
+            
+            // State is passed as parameter
+            console.log('Creating visualization with state:', state);
+            console.log('  corner_perm:', state.corner_perm);
+            console.log('  corner_ori:', state.corner_ori);
+            console.log('  edge_perm:', state.edge_perm);
+            console.log('  edge_ori:', state.edge_ori);
+            
+            // Create corner pieces (8 corners)
+            for (let i = 0; i < 8; i++) {
+                const cornerDef = CORNER_POSITIONS[i];
+                const [x, y, z] = cornerDef.pos;
+                const colors = getCornerColors(i, state);
+                
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                
+                // Materials for 6 faces: [Right, Left, Top, Bottom, Front, Back]
+                const materials = [
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.right] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.left] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.top] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.bottom] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.front] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.back] || 0x000000 }),
+                ];
+                
+                const cubelet = new THREE.Mesh(geometry, materials);
+                cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
+                
+                const edges = new THREE.EdgesGeometry(geometry);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+                cubelet.add(line);
+                cubeGroup.add(cubelet);
+            }
+            
+            // Create edge pieces (12 edges)
+            for (let i = 0; i < 12; i++) {
+                const edgeDef = EDGE_POSITIONS[i];
+                const [x, y, z] = edgeDef.pos;
+                const colors = getEdgeColors(i, state);
+                
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                
+                // 明示的に各面の色を取得
+                const materials = [
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.right] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.left] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.top] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.bottom] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.front] || 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colorMap[colors.back] || 0x000000 }),
+                ];
+                
+                const cubelet = new THREE.Mesh(geometry, materials);
+                cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
+                
+                const edges = new THREE.EdgesGeometry(geometry);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+                cubelet.add(line);
+                cubeGroup.add(cubelet);
+            }
+            
+            // Create center pieces (6 centers - fixed)
+            const centers = [
+                { pos: [1, 0, 0], color: 3 },   // Right - Green
+                { pos: [-1, 0, 0], color: 2 },  // Left - Blue
+                { pos: [0, 1, 0], color: 0 },   // Top - Yellow
+                { pos: [0, -1, 0], color: 1 },  // Bottom - White
+                { pos: [0, 0, 1], color: 4 },   // Front - Red
+                { pos: [0, 0, -1], color: 5 },  // Back - Orange
+            ];
+            
+            for (const center of centers) {
+                const [x, y, z] = center.pos;
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                
+                const materials = [
+                    new THREE.MeshStandardMaterial({ color: x === 1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: x === -1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: y === 1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: y === -1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: z === 1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: z === -1 ? colorMap[center.color] : 0x000000 }),
+                ];
+                
+                const cubelet = new THREE.Mesh(geometry, materials);
+                cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
+                
+                const edges = new THREE.EdgesGeometry(geometry);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+                cubelet.add(line);
+                cubeGroup.add(cubelet);
+            }
+            
+            scene.add(cubeGroup);
+            console.log('Cube visualization created, pieces:', cubeGroup.children.length);
+            console.log('CubeGroup added to scene. Scene children:', scene.children.length);
+        }
+
+        function updateVisualization() {
+            // Get current state and pass to visualization
+            const state = cube.getState();
+            createCubeVisualization(state);
+            
+            // Update status
+            const isSolved = cube.isSolved();
+            const statusEl = document.getElementById('status');
+            const solvedStatus = document.getElementById('solved-status');
+            
+            if (isSolved) {
+                statusEl.classList.add('solved');
+                solvedStatus.textContent = 'Solved ✓';
+            } else {
+                statusEl.classList.remove('solved');
+                solvedStatus.textContent = 'Scrambled';
+            }
+            
+            // Update legality info
+            const legality = cube.getLegality();
+            document.getElementById('legality-info').innerHTML = `
+                <strong>Legality Check:</strong><br>
+                Is Legal: ${legality.is_legal ? '✓' : '✗'}<br>
+                Corner Parity: ${legality.corner_parity}<br>
+                Edge Parity: ${legality.edge_parity}
+            `;
+            
+            // Update state info - show detailed arrays
+            // state is already obtained above
+            console.log('Detailed state:');
+            console.log('  corner_perm:', state.corner_perm);
+            console.log('  corner_ori:', state.corner_ori);
+            console.log('  edge_perm:', state.edge_perm);
+            console.log('  edge_ori:', state.edge_ori);
+            
+            document.getElementById('state-info').innerHTML = `
+                <strong>State:</strong><br>
+                <small>
+                corner_perm: [${state.corner_perm.join(', ')}]<br>
+                corner_ori: [${state.corner_ori.join(', ')}]<br>
+                edge_perm: [${state.edge_perm.join(', ')}]<br>
+                edge_ori: [${state.edge_ori.join(', ')}]
+                </small>
+            `;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        let animationStarted = false;
+        function startAnimation() {
+            if (!animationStarted) {
+                animationStarted = true;
+                console.log('Animation loop started');
+                animate();
+            }
+        }
+
+        // Global functions
+        window.applyMove = function(moveStr) {
+            try {
+                console.log('Applying move:', moveStr);
+                
+                // Store old rotation for animation
+                const oldRotation = cubeGroup.rotation.y;
+                
+                cube.applyMove(moveStr);
+                updateVisualization();
+                
+                // Add rotation animation for visual feedback
+                const rotationAmount = 0.2; // radians
+                cubeGroup.rotation.y = oldRotation + rotationAmount;
+                
+                // Animate back to original rotation
+                const startRotation = cubeGroup.rotation.y;
+                const targetRotation = oldRotation;
+                const duration = 200; // ms
+                const startTime = performance.now();
+                
+                function animateRotation() {
+                    const elapsed = performance.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
+                    
+                    cubeGroup.rotation.y = startRotation + (targetRotation - startRotation) * eased;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animateRotation);
+                    }
+                }
+                animateRotation();
+                
+            } catch (e) {
+                console.error('Error applying move:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        window.applyAlgorithm = function() {
+            const alg = document.getElementById('algorithm-input').value;
+            if (!alg) return;
+            
+            try {
+                console.log('Applying algorithm:', alg);
+                cube.applyAlgorithm(alg);
+                updateVisualization();
+            } catch (e) {
+                console.error('Error applying algorithm:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        window.showInverse = function() {
+            const alg = document.getElementById('algorithm-input').value;
+            if (!alg) return;
+            
+            try {
+                const inv = wasmModule.invertAlgorithm(alg);
+                document.getElementById('algorithm-input').value = inv;
+            } catch (e) {
+                console.error('Error calculating inverse:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        window.resetCube = function() {
+            console.log('Resetting cube');
+            cube = new wasmModule.WasmCube();
+            window.cube = cube;
+            updateVisualization();
+        };
+
+        window.applyCommutator = function() {
+            const a = document.getElementById('alg-a').value;
+            const b = document.getElementById('alg-b').value;
+            if (!a || !b) {
+                alert('Please enter both algorithms');
+                return;
+            }
+            
+            try {
+                const result = wasmModule.commutator(a, b);
+                document.getElementById('algorithm-input').value = result;
+                cube.applyAlgorithm(result);
+                updateVisualization();
+            } catch (e) {
+                console.error('Error applying commutator:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        window.applyConjugate = function() {
+            const a = document.getElementById('alg-a').value;
+            const b = document.getElementById('alg-b').value;
+            if (!a || !b) {
+                alert('Please enter both algorithms');
+                return;
+            }
+            
+            try {
+                const result = wasmModule.conjugate(a, b);
+                document.getElementById('algorithm-input').value = result;
+                cube.applyAlgorithm(result);
+                updateVisualization();
+            } catch (e) {
+                console.error('Error applying conjugate:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        main();
+    </script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 members = [
   "cube-core",
   "cube-cli",
+  "cube-wasm",
 ]
 resolver = "2"
 
