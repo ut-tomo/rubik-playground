@@ -397,23 +397,23 @@ impl Cube {
         let eo = self.edge_ori;
 
         // corners: cycle (3 2 6 7) 時計回り(後ろから見て) with twist
-        // 標準的なorientation: F面と対称だが鏡像
-        // サイクル: 3←7, 2←3, 6←2, 7←6 (逆読み: 7→3, 3→2, 2→6, 6→7)
-        // 7(DBL)→3(UBL): D→U, +2
-        // 3(UBL)→2(UBR): U→U, +1
-        // 2(UBR)→6(DBR): U→D, +2
-        // 6(DBR)→7(DBL): D→D, +1
-        self.corner_perm[3] = cp[7];
-        self.corner_ori[3]  = (co[7] + 2) % 3;
+        // 後ろから見て時計回り: 3→7→6→2→3 (正面からは反時計回り)
+        // つまり: 7←3, 6←7, 2←6, 3←2
+        // 3(UBL)→7(DBL): U→D, +2
+        // 7(DBL)→6(DBR): 側面移動, +1
+        // 6(DBR)→2(UBR): D→U, +2
+        // 2(UBR)→3(UBL): 側面移動, +1
+        self.corner_perm[7] = cp[3];
+        self.corner_ori[7]  = (co[3] + 2) % 3;
 
-        self.corner_perm[2] = cp[3];
-        self.corner_ori[2]  = (co[3] + 1) % 3;
+        self.corner_perm[6] = cp[7];
+        self.corner_ori[6]  = (co[7] + 1) % 3;
 
-        self.corner_perm[6] = cp[2];
-        self.corner_ori[6]  = (co[2] + 2) % 3;
+        self.corner_perm[2] = cp[6];
+        self.corner_ori[2]  = (co[6] + 2) % 3;
 
-        self.corner_perm[7] = cp[6];
-        self.corner_ori[7]  = (co[6] + 1) % 3;
+        self.corner_perm[3] = cp[2];
+        self.corner_ori[3]  = (co[2] + 1) % 3;
 
         // 他の corners
         self.corner_perm[0] = cp[0];

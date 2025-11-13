@@ -1,0 +1,17 @@
+{
+  "name": "cube-wasm",
+  "type": "module",
+  "description": "WebAssembly bindings for Rubik's Cube operations",
+  "version": "0.1.0",
+  "license": "MIT",
+  "files": [
+    "cube_wasm_bg.wasm",
+    "cube_wasm.js",
+    "cube_wasm.d.ts"
+  ],
+  "main": "cube_wasm.js",
+  "types": "cube_wasm.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

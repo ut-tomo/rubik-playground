@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧊 Rubik's Cube Playground</title>
+    <link rel="stylesheet" href="style.css">
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+    <div id="loading">
+        <h1>🧊 Loading Rubik's Cube Playground...</h1>
+        <p id="loading-status">Initializing...</p>
+        <div style="margin-top: 20px;">
+            <div style="width: 300px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: white; transition: width 0.3s;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app">
+        <div id="canvas-container"></div>
+        
+        <div id="controls">
+            <h1>🧊 Rubik's Cube</h1>
+            
+            <div id="status">
+                <strong>Status:</strong> <span id="solved-status">Solved ✓</span>
+            </div>
+
+            <h2>Quick Moves</h2>
+            <div class="move-buttons">
+                <button onclick="applyMove('U')">U</button>
+                <button onclick="applyMove('U2')">U2</button>
+                <button onclick="applyMove('U\'')">U'</button>
+                <button onclick="applyMove('D')">D</button>
+                <button onclick="applyMove('D2')">D2</button>
+                <button onclick="applyMove('D\'')">D'</button>
+                <button onclick="applyMove('L')">L</button>
+                <button onclick="applyMove('L2')">L2</button>
+                <button onclick="applyMove('L\'')">L'</button>
+                <button onclick="applyMove('R')">R</button>
+                <button onclick="applyMove('R2')">R2</button>
+                <button onclick="applyMove('R\'')">R'</button>
+                <button onclick="applyMove('F')">F</button>
+                <button onclick="applyMove('F2')">F2</button>
+                <button onclick="applyMove('F\'')">F'</button>
+                <button onclick="applyMove('B')">B</button>
+                <button onclick="applyMove('B2')">B2</button>
+                <button onclick="applyMove('B\'')">B'</button>
+            </div>
+
+            <h2>Algorithm</h2>
+            <div class="input-group">
+                <input type="text" id="algorithm-input" placeholder="例: R U R' U'" />
+                <div class="action-buttons">
+                    <button onclick="applyAlgorithm()">Apply</button>
+                    <button onclick="showInverse()">Inverse</button>
+                    <button onclick="resetCube()">Reset</button>
+                </div>
+            </div>
+
+            <h2>Advanced</h2>
+            <div class="input-group">
+                <input type="text" id="alg-a" placeholder="Algorithm A" />
+                <input type="text" id="alg-b" placeholder="Algorithm B" />
+                <div class="action-buttons">
+                    <button onclick="applyCommutator()">Commutator</button>
+                    <button onclick="applyConjugate()">Conjugate</button>
+                </div>
+            </div>
+
+            <h2>Info</h2>
+            <div class="info-section">
+                <div id="legality-info">Legality: ...</div>
+                <div id="state-info" style="margin-top: 10px; font-size: 0.8em;">State: ...</div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        // Three.js is now loaded, start immediately
+        console.log('Three.js loaded, starting initialization...');
+
+        // Global variables
+        let cube;
+        let scene, camera, renderer, controls;
+        let cubeGroup;
+        let wasmModule;
+
+        async function main() {
+            try {
+                const startTime = performance.now();
+                
+                updateProgress(10, 'Loading WASM module...');
+                console.log('Loading WASM module...');
+                const wasmStart = performance.now();
+                wasmModule = await import('./pkg/cube_wasm.js');
+                console.log(`WASM module loaded in ${(performance.now() - wasmStart).toFixed(0)}ms`);
+                
+                updateProgress(40, 'Initializing WASM...');
+                console.log('Initializing WASM...');
+                const initStart = performance.now();
+                await wasmModule.default();
+                console.log(`WASM initialized in ${(performance.now() - initStart).toFixed(0)}ms`);
+                
+                updateProgress(60, 'Setting up scene...');
+                console.log('Creating cube and scene...');
+                const sceneStart = performance.now();
+                
+                // Three.js is already loaded via import at top
+                updateProgress(80, 'Creating visualization...');
+                initApp();
+                console.log(`Scene setup in ${(performance.now() - sceneStart).toFixed(0)}ms`);
+                
+                updateProgress(100, 'Ready!');
+                console.log(`Total initialization time: ${(performance.now() - startTime).toFixed(0)}ms`);
+                
+                // Hide loading and show app
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('app').style.display = 'grid';
+                
+                // Wait for layout to complete, then resize renderer
+                setTimeout(() => {
+                    const container = document.getElementById('canvas-container');
+                    const width = container.clientWidth;
+                    const height = container.clientHeight;
+                    console.log('Container size after layout:', width, 'x', height);
+                    
+                    if (width > 0 && height > 0) {
+                        camera.aspect = width / height;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(width, height);
+                        console.log('Renderer resized to:', width, 'x', height);
+                    }
+                }, 50);
+                
+            } catch (error) {
+                console.error('Error during initialization:', error);
+                document.getElementById('loading').innerHTML = `
+                    <h2>❌ Error Loading</h2>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        function updateProgress(percent, status) {
+            document.getElementById('progress-bar').style.width = percent + '%';
+            document.getElementById('loading-status').textContent = status;
+        }
+
+        function initApp() {
+            // Create cube
+            cube = new wasmModule.WasmCube();
+            window.cube = cube;
+            window.wasmModule = wasmModule;
+
+            // Setup Three.js scene
+            setupScene();
+
+            // Create initial visualization
+            updateVisualization();
+
+            // Start animation loop
+            startAnimation();
+
+            console.log('App initialized successfully!');
+        }
+
+        function setupScene() {
+            const container = document.getElementById('canvas-container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a2e);
+
+            // Camera - use temporary aspect ratio, will be corrected after layout
+            camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer - start with minimum size, will be resized after layout
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(100, 100);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+            console.log('Initial renderer size: 100x100 (will be resized after layout)');
+
+            // Controls
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight1.position.set(5, 10, 5);
+            scene.add(directionalLight1);
+
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            directionalLight2.position.set(-5, -5, -5);
+            scene.add(directionalLight2);
+
+            // Window resize
+            window.addEventListener('resize', () => {
+                const container = document.getElementById('canvas-container');
+                const aspect = container.clientWidth / container.clientHeight;
+                camera.aspect = aspect;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+
+            console.log('Scene setup complete');
+        }
+
+        // Corner positions: [x, y, z]
+        // Corner index mapping (must match cube-core/src/state.rs)
+        // 0: UFL, 1: UFR, 2: UBR, 3: UBL, 4: DFL, 5: DFR, 6: DBR, 7: DBL
+        const CORNER_POSITIONS = [
+            { pos: [-1, 1, 1] },   // 0: UFL
+            { pos: [1, 1, 1] },    // 1: UFR
+            { pos: [1, 1, -1] },   // 2: UBR
+            { pos: [-1, 1, -1] },  // 3: UBL
+            { pos: [-1, -1, 1] },  // 4: DFL
+            { pos: [1, -1, 1] },   // 5: DFR
+            { pos: [1, -1, -1] },  // 6: DBR
+            { pos: [-1, -1, -1] }, // 7: DBL
+        ];
+
+        // Corner piece base colors: [U/D面の色, 第2の色, 第3の色]
+        // 各ピースの3色を定義（初期位置での色配置）
+        // perm 0-7に対応
+        // 色ID: 0=黄(U), 1=白(D), 2=青(L), 3=緑(R), 4=赤(F), 5=橙(B)
+        const CORNER_BASE_COLORS = [
+            [0, 2, 4],  // 0: UFL (黄・青・赤) - 上=黄, 左=青, 前=赤
+            [0, 4, 3],  // 1: UFR (黄・赤・緑) - 上=黄, 前=赤, 右=緑
+            [0, 3, 5],  // 2: UBR (黄・緑・橙) - 上=黄, 右=緑, 後=橙
+            [0, 5, 2],  // 3: UBL (黄・橙・青) - 上=黄, 後=橙, 左=青
+            [1, 4, 2],  // 4: DFL (白・赤・青) - 下=白, 前=赤, 左=青
+            [1, 3, 4],  // 5: DFR (白・緑・赤) - 下=白, 右=緑, 前=赤
+            [1, 5, 3],  // 6: DBR (白・橙・緑) - 下=白, 後=橙, 右=緑
+            [1, 2, 5]   // 7: DBL (白・青・橙) - 下=白, 左=青, 後=橙
+        ];
+
+        // Position definitions: どの面が見えるか
+        // 各位置での面の割り当て [Y軸面, side1, side2]
+        // Y軸面: top(上段) or bottom(下段)
+        // side1, side2: 位置に応じた側面
+        const CORNER_POSITION_INFO = [
+            { yFace: 'top', side1: 'left', side2: 'front' },   // 0: UFL
+            { yFace: 'top', side1: 'front', side2: 'right' },  // 1: UFR
+            { yFace: 'top', side1: 'right', side2: 'back' },   // 2: UBR
+            { yFace: 'top', side1: 'back', side2: 'left' },    // 3: UBL
+            { yFace: 'bottom', side1: 'front', side2: 'left' }, // 4: DFL
+            { yFace: 'bottom', side1: 'right', side2: 'front' },// 5: DFR
+            { yFace: 'bottom', side1: 'back', side2: 'right' }, // 6: DBR
+            { yFace: 'bottom', side1: 'left', side2: 'back' }   // 7: DBL
+        ];
+
+        // 旧実装: 静的な巨大マップ（削除予定）
+        const CORNER_COLOR_MAP_OLD = {
+            // perm 0: UFL キューブ (黄・青・赤)
+            0: {
+                0: { // 位置0 (UFL)
+                    0: { top: 0, left: 2, front: 4, bottom: -1, right: -1, back: -1 },
+                    1: { top: 2, left: 4, front: 0, bottom: -1, right: -1, back: -1 },
+                    2: { top: 4, left: 0, front: 2, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 0, front: 2, right: 4, bottom: -1, left: -1, back: -1 },
+                    1: { top: 4, front: 0, right: 2, bottom: -1, left: -1, back: -1 },
+                    2: { top: 2, front: 4, right: 0, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 0, right: 2, back: 4, bottom: -1, left: -1, front: -1 },
+                    1: { top: 4, right: 0, back: 2, bottom: -1, left: -1, front: -1 },
+                    2: { top: 2, right: 4, back: 0, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 0, back: 2, left: 4, bottom: -1, right: -1, front: -1 },
+                    1: { top: 4, back: 0, left: 2, bottom: -1, right: -1, front: -1 },
+                    2: { top: 2, back: 4, left: 0, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 0, left: 2, front: 4, top: -1, right: -1, back: -1 },
+                    1: { bottom: 2, left: 0, front: 4, top: -1, right: -1, back: -1 }, //ok
+                    2: { bottom: 2, left: 4, front: 0, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 0, front: 4, right: 2, top: -1, left: -1, back: -1 },
+                    1: { bottom: 4, front: 0, right: 2, top: -1, left: -1, back: -1 },
+                    2: { bottom: 2, front: 4, right: 0, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 0, right: 2, back: 4, top: -1, left: -1, front: -1 },
+                    1: { bottom: 4, right: 0, back: 2, top: -1, left: -1, front: -1 },
+                    2: { bottom: 2, right: 0, back: 4, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 0, back: 4, left: 2, top: -1, right: -1, front: -1 },
+                    1: { bottom: 4, back: 0, left: 2, top: -1, right: -1, front: -1 },
+                    2: { bottom: 2, back: 4, left: 0, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 1: UFR キューブ (黄・赤・緑)
+            1: {
+                0: { // 位置0 (UFL)
+                    0: { top: 0, left: 4, front: 3, bottom: -1, right: -1, back: -1 },
+                    1: { top: 3, left: 0, front: 4, bottom: -1, right: -1, back: -1 },
+                    2: { top: 4, left: 3, front: 0, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 0, front: 4, right: 3, bottom: -1, left: -1, back: -1 },
+                    1: { top: 3, front: 0, right: 4, bottom: -1, left: -1, back: -1 },
+                    2: { top: 4, front: 3, right: 0, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 0, right: 4, back: 3, bottom: -1, left: -1, front: -1 },
+                    1: { top: 3, right: 0, back: 4, bottom: -1, left: -1, front: -1 },
+                    2: { top: 4, right: 3, back: 0, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 0, back: 4, left: 3, bottom: -1, right: -1, front: -1 },
+                    1: { top: 3, back: 0, left: 4, bottom: -1, right: -1, front: -1 },
+                    2: { top: 4, back: 3, left: 0, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 0, left: 4, front: 3, top: -1, right: -1, back: -1 },
+                    1: { bottom: 4, left: 0, front: 3, top: -1, right: -1, back: -1 },
+                    2: { bottom: 0, left: 3, front: 4, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 0, front: 4, right: 3, top: -1, left: -1, back: -1 },
+                    1: { bottom: 3, front: 4, right: 0, top: -1, left: -1, back: -1 },
+                    2: { bottom: 4, front: 0, right: 3, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 0, right: 3, back: 4, top: -1, left: -1, front: -1 },
+                    1: { bottom: 4, right: 0, back: 3, top: -1, left: -1, front: -1 },
+                    2: { bottom: 3, right: 4, back: 0, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 0, back: 4, left: 3, top: -1, right: -1, front: -1 },
+                    1: { bottom: 4, back: 0, left: 3, top: -1, right: -1, front: -1 },
+                    2: { bottom: 3, back: 4, left: 0, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 2: UBR キューブ (黄・緑・橙)
+            2: {
+                0: { // 位置0 (UFL)
+                    0: { top: 0, left: 3, front: 5, bottom: -1, right: -1, back: -1 },
+                    1: { top: 5, left: 0, front: 3, bottom: -1, right: -1, back: -1 },
+                    2: { top: 3, left: 5, front: 0, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 0, front: 3, right: 5, bottom: -1, left: -1, back: -1 },
+                    1: { top: 5, front: 0, right: 3, bottom: -1, left: -1, back: -1 },
+                    2: { top: 3, front: 5, right: 0, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 0, right: 3, back: 5, bottom: -1, left: -1, front: -1 },
+                    1: { top: 5, right: 0, back: 3, bottom: -1, left: -1, front: -1 },
+                    2: { top: 3, right: 5, back: 0, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 3, back: 5, left: 0, bottom: -1, right: -1, front: -1 },
+                    1: { top: 5, back: 0, left: 3, bottom: -1, right: -1, front: -1 },
+                    2: { top: 3, back: 5, left: 0, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 0, left: 3, front: 5, top: -1, right: -1, back: -1 },
+                    1: { bottom: 3, left: 0, front: 5, top: -1, right: -1, back: -1 },
+                    2: { bottom: 5, left: 3, front: 0, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 0, front: 5, right: 3, top: -1, left: -1, back: -1 },
+                    1: { bottom: 3, front: 0, right: 5, top: -1, left: -1, back: -1 },
+                    2: { bottom: 5, front: 3, right: 0, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 3, right: 0, back: 5, top: -1, left: -1, front: -1 },
+                    1: { bottom: 5, right: 3, back: 0, top: -1, left: -1, front: -1 },
+                    2: { bottom: 5, right: 3, back: 0, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 0, back: 3, left: 5, top: -1, right: -1, front: -1 },
+                    1: { bottom: 3, back: 0, left: 5, top: -1, right: -1, front: -1 },
+                    2: { bottom: 0, back: 5, left: 3, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 3: UBL キューブ (黄・橙・青)
+            3: {
+                0: { // 位置0 (UFL)
+                    0: { top: 0, left: 5, front: 2, bottom: -1, right: -1, back: -1 },
+                    1: { top: 2, left: 0, front: 5, bottom: -1, right: -1, back: -1 },
+                    2: { top: 5, left: 2, front: 0, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 0, front: 5, right: 2, bottom: -1, left: -1, back: -1 },
+                    1: { top: 2, front: 0, right: 5, bottom: -1, left: -1, back: -1 },
+                    2: { top: 5, front: 2, right: 0, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 2, right: 0, back: 5, bottom: -1, left: -1, front: -1 },
+                    1: { top: 2, right: 0, back: 5, bottom: -1, left: -1, front: -1 },
+                    2: { top: 5, right: 2, back: 0, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 0, back: 5, left: 2, bottom: -1, right: -1, front: -1 },
+                    1: { top: 2, back: 0, left: 5, bottom: -1, right: -1, front: -1 },
+                    2: { top: 5, back: 2, left: 0, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 0, left: 2, front: 5, top: -1, right: -1, back: -1 },
+                    1: { bottom: 5, left: 0, front: 2, top: -1, right: -1, back: -1 },
+                    2: { bottom: 2, left: 5, front: 0, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 0, front: 5, right: 2, top: -1, left: -1, back: -1 },
+                    1: { bottom: 5, front: 0, right: 2, top: -1, left: -1, back: -1 },
+                    2: { bottom: 2, front: 5, right: 0, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 0, right: 2, back: 5, top: -1, left: -1, front: -1 },
+                    1: { bottom: 5, right: 0, back: 2, top: -1, left: -1, front: -1 },
+                    2: { bottom: 2, right: 5, back: 0, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 0, back: 5, left: 2, top: -1, right: -1, front: -1 },
+                    1: { bottom: 5, back: 0, left: 2, top: -1, right: -1, front: -1 },
+                    2: { bottom: 2, back: 5, left: 0, top: -1, right: -1, front: -1 } //ok
+                }
+            },
+            // perm 4: DFL キューブ (白・青・赤)
+            4: {
+                0: { // 位置0 (UFL)
+                    0: { top: 1, left: 2, front: 4, bottom: -1, right: -1, back: -1 },
+                    1: { top: 4, left: 1, front: 2, bottom: -1, right: -1, back: -1 },
+                    2: { top: 2, left: 1, front: 4, bottom: -1, right: -1, back: -1 } //OK
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 1, front: 2, right: 4, bottom: -1, left: -1, back: -1 },
+                    1: { top: 1, front: 4, right: 2, bottom: -1, left: -1, back: -1 },
+                    2: { top: 2, front: 4, right: 1, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 1, right: 2, back: 4, bottom: -1, left: -1, front: -1 },
+                    1: { top: 4, right: 1, back: 2, bottom: -1, left: -1, front: -1 },
+                    2: { top: 2, right: 4, back: 1, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 1, back: 4, left: 2, bottom: -1, right: -1, front: -1 },
+                    1: { top: 4, back: 1, left: 2, bottom: -1, right: -1, front: -1 },
+                    2: { top: 2, back: 4, left: 1, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 1, left: 2, front: 4, top: -1, right: -1, back: -1 },
+                    1: { bottom: 2, left: 1, front: 4, top: -1, right: -1, back: -1 },
+                    2: { bottom: 4, left: 2, front: 1, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 1, front: 2, right: 4, top: -1, left: -1, back: -1 },
+                    1: { bottom: 2, front: 1, right: 4, top: -1, left: -1, back: -1 },
+                    2: { bottom: 2, front: 4, right: 1, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 1, right: 2, back: 4, top: -1, left: -1, front: -1 },
+                    1: { bottom: 2, right: 1, back: 4, top: -1, left: -1, front: -1 },
+                    2: { bottom: 4, right: 2, back: 1, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 1, back: 2, left: 4, top: -1, right: -1, front: -1 },
+                    1: { bottom: 2, back: 1, left: 4, top: -1, right: -1, front: -1 },
+                    2: { bottom: 4, back: 1, left: 2, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 5: DFR キューブ (白・赤・緑)
+            5: {
+                0: { // 位置0 (UFL)
+                    0: { top: 1, left: 3, front: 4, bottom: -1, right: -1, back: -1 },
+                    1: { top: 3, left: 1, front: 4, bottom: -1, right: -1, back: -1 },
+                    2: { top: 4, left: 3, front: 1, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 1, front: 4, right: 3, bottom: -1, left: -1, back: -1 },
+                    1: { top: 4, front: 1, right: 3, bottom: -1, left: -1, back: -1 },
+                    2: { top: 3, front: 4, right: 1, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 1, right: 3, back: 4, bottom: -1, left: -1, front: -1 },
+                    1: { top: 3, right: 1, back: 4, bottom: -1, left: -1, front: -1 },
+                    2: { top: 4, right: 3, back: 1, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 1, back: 4, left: 3, bottom: -1, right: -1, front: -1 },
+                    1: { top: 3, back: 1, left: 4, bottom: -1, right: -1, front: -1 },
+                    2: { top: 4, back: 3, left: 1, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 1, left: 4, front: 3, top: -1, right: -1, back: -1 },
+                    1: { bottom: 3, left: 1, front: 4, top: -1, right: -1, back: -1 },
+                    2: { bottom: 3, left: 4, front: 1, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 1, front: 4, right: 3, top: -1, left: -1, back: -1 },
+                    1: { bottom: 4, front: 1, right: 3, top: -1, left: -1, back: -1 },
+                    2: { bottom: 3, front: 4, right: 1, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 1, right: 4, back: 3, top: -1, left: -1, front: -1 },
+                    1: { bottom: 4, right: 3, back: 1, top: -1, left: -1, front: -1 },
+                    2: { bottom: 3, right: 4, back: 1, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 1, back: 4, left: 3, top: -1, right: -1, front: -1 },
+                    1: { bottom: 4, back: 1, left: 3, top: -1, right: -1, front: -1 },
+                    2: { bottom: 3, back: 4, left: 1, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 6: DBR キューブ (白・緑・橙)
+            6: {
+                0: { // 位置0 (UFL)
+                    0: { top: 1, left: 3, front: 5, bottom: -1, right: -1, back: -1 },
+                    1: { top: 5, left: 1, front: 3, bottom: -1, right: -1, back: -1 },
+                    2: { top: 3, left: 5, front: 1, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 1, front: 5, right: 3, bottom: -1, left: -1, back: -1 },
+                    1: { top: 5, front: 1, right: 3, bottom: -1, left: -1, back: -1 },
+                    2: { top: 3, front: 5, right: 1, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 3, right: 1, back: 5, bottom: -1, left: -1, front: -1 },
+                    1: { top: 5, right: 1, back: 3, bottom: -1, left: -1, front: -1 },
+                    2: { top: 5, right: 3, back: 1, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 1, back: 5, left: 3, bottom: -1, right: -1, front: -1 },
+                    1: { top: 5, back: 1, left: 3, bottom: -1, right: -1, front: -1 },
+                    2: { top: 3, back: 5, left: 1, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 1, left: 3, front: 5, top: -1, right: -1, back: -1 },
+                    1: { bottom: 3, left: 1, front: 5, top: -1, right: -1, back: -1 },
+                    2: { bottom: 5, left: 3, front: 1, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 1, front: 3, right: 5, top: -1, left: -1, back: -1 },
+                    1: { bottom: 3, front: 1, right: 5, top: -1, left: -1, back: -1 },
+                    2: { bottom: 5, front: 1, right: 3, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 1, right: 3, back: 5, top: -1, left: -1, front: -1 },
+                    1: { bottom: 3, right: 1, back: 5, top: -1, left: -1, front: -1 },
+                    2: { bottom: 5, right: 3, back: 1, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 1, back: 3, left: 5, top: -1, right: -1, front: -1 },
+                    1: { bottom: 3, back: 1, left: 5, top: -1, right: -1, front: -1 },
+                    2: { bottom: 3, back: 5, left: 1, top: -1, right: -1, front: -1 }
+                }
+            },
+            // perm 7: DBL キューブ (白・橙・青)
+            7: {
+                0: { // 位置0 (UFL)
+                    0: { top: 1, left: 2, front: 5, bottom: -1, right: -1, back: -1 },
+                    1: { top: 2, left: 1, front: 5, bottom: -1, right: -1, back: -1 },
+                    2: { top: 5, left: 2, front: 1, bottom: -1, right: -1, back: -1 }
+                },
+                1: { // 位置1 (UFR)
+                    0: { top: 1, front: 5, right: 2, bottom: -1, left: -1, back: -1 },
+                    1: { top: 2, front: 1, right: 5, bottom: -1, left: -1, back: -1 },
+                    2: { top: 5, front: 2, right: 1, bottom: -1, left: -1, back: -1 }
+                },
+                2: { // 位置2 (UBR)
+                    0: { top: 1, right: 5, back: 2, bottom: -1, left: -1, front: -1 },
+                    1: { top: 1, right: 2, back: 5, bottom: -1, left: -1, front: -1 },
+                    2: { top: 5, right: 2, back: 1, bottom: -1, left: -1, front: -1 }
+                },
+                3: { // 位置3 (UBL)
+                    0: { top: 1, back: 5, left: 2, bottom: -1, right: -1, front: -1 },
+                    1: { top: 2, back: 5, left: 1, bottom: -1, right: -1, front: -1 }, //ok
+                    2: { top: 5, back: 2, left: 1, bottom: -1, right: -1, front: -1 }
+                },
+                4: { // 位置4 (DFL)
+                    0: { bottom: 1, left: 5, front: 2, top: -1, right: -1, back: -1 },
+                    1: { bottom: 5, left: 2, front: 1, top: -1, right: -1, back: -1 },
+                    2: { bottom: 2, left: 5, front: 1, top: -1, right: -1, back: -1 }
+                },
+                5: { // 位置5 (DFR)
+                    0: { bottom: 1, front: 5, right: 2, top: -1, left: -1, back: -1 },
+                    1: { bottom: 5, front: 1, right: 2, top: -1, left: -1, back: -1 },
+                    2: { bottom: 2, front: 5, right: 1, top: -1, left: -1, back: -1 }
+                },
+                6: { // 位置6 (DBR)
+                    0: { bottom: 1, right: 5, back: 2, top: -1, left: -1, front: -1 },
+                    1: { bottom: 2, right: 1, back: 5, top: -1, left: -1, front: -1 },
+                    2: { bottom: 2, right: 5, back: 1, top: -1, left: -1, front: -1 }
+                },
+                7: { // 位置7 (DBL)
+                    0: { bottom: 1, back: 5, left: 2, top: -1, right: -1, front: -1 },
+                    1: { bottom: 5, back: 1, left: 2, top: -1, right: -1, front: -1 },
+                    2: { bottom: 2, back: 5, left: 1, top: -1, right: -1, front: -1 }
+                }
+            }
+        };
+
+        // Edge positions: [x, y, z] and their sticker faces [face1, face2]
+        // Edge index mapping (must match cube-core/src/state.rs)
+        // 0: UF, 1: UR, 2: UB, 3: UL, 4: FL, 5: FR, 6: BR, 7: BL, 8: DF, 9: DR, 10: DB, 11: DL
+        // faces の順序は、U/D面のエッジは[上下面, 側面]、中段のエッジは[前後面, 左右面]
+        const EDGE_POSITIONS = [
+            { pos: [0, 1, 1], faces: [0, 4] },    // 0: UF (Up-Front)
+            { pos: [1, 1, 0], faces: [0, 3] },    // 1: UR (Up-Right)
+            { pos: [0, 1, -1], faces: [0, 5] },   // 2: UB (Up-Back)
+            { pos: [-1, 1, 0], faces: [0, 2] },   // 3: UL (Up-Left)
+            { pos: [-1, 0, 1], faces: [4, 2] },   // 4: FL (Front-Left)
+            { pos: [1, 0, 1], faces: [4, 3] },    // 5: FR (Front-Right)
+            { pos: [1, 0, -1], faces: [5, 3] },   // 6: BR (Back-Right)
+            { pos: [-1, 0, -1], faces: [5, 2] },  // 7: BL (Back-Left)
+            { pos: [0, -1, 1], faces: [1, 4] },   // 8: DF (Down-Front)
+            { pos: [1, -1, 0], faces: [1, 3] },   // 9: DR (Down-Right)
+            { pos: [0, -1, -1], faces: [1, 5] },  // 10: DB (Down-Back)
+            { pos: [-1, -1, 0], faces: [1, 2] },  // 11: DL (Down-Left)
+        ];
+
+        // Get colors for a corner piece based on state
+        // 一般的な実装: 基本色 + position + orientation から動的に計算
+        function getCornerColors(cornerIndex, state) {
+            const perm = state.corner_perm[cornerIndex];
+            const ori = state.corner_ori[cornerIndex];
+            
+            // ピースの基本3色を取得 [Y軸色, A色, B色]
+            const baseColors = CORNER_BASE_COLORS[perm];
+            
+            // orientation による色の回転を適用
+            // ori=0: そのまま [Y, A, B]
+            // ori=1: Y軸周りに120°回転 [A, B, Y]
+            // ori=2: Y軸周りに240°回転 [B, Y, A]
+            let rotatedColors;
+            if (ori === 0) {
+                rotatedColors = [baseColors[0], baseColors[1], baseColors[2]];
+            } else if (ori === 1) {
+                rotatedColors = [baseColors[1], baseColors[2], baseColors[0]];
+            } else { // ori === 2
+                rotatedColors = [baseColors[2], baseColors[0], baseColors[1]];
+            }
+            
+            // 位置情報を取得
+            const posInfo = CORNER_POSITION_INFO[cornerIndex];
+            
+            // 結果オブジェクトを構築
+            const result = {
+                top: -1,
+                bottom: -1,
+                left: -1,
+                right: -1,
+                front: -1,
+                back: -1
+            };
+            
+            // Y軸面に色を配置
+            result[posInfo.yFace] = rotatedColors[0];
+            
+            // side1 に色を配置
+            result[posInfo.side1] = rotatedColors[1];
+            
+            // side2 に色を配置
+            result[posInfo.side2] = rotatedColors[2];
+            
+            return result;
+
+        }
+
+        // Get colors for an edge piece based on state
+        // Returns an object with colors for each face: {right, left, top, bottom, front, back}
+        // 色IDを返す（0-5の数値、または黒の場合は-1）
+        function getEdgeColors(edgeIndex, state) {
+            const perm = state.edge_perm[edgeIndex];   // どのエッジがこの位置にあるか
+            const ori = state.edge_ori[edgeIndex];      // 向き (0 or 1)
+            
+            // この位置のエッジが持つべき2色（元の色）
+            const originalFaces = EDGE_POSITIONS[perm].faces;
+            
+            // oriが1なら反転
+            const [color1, color2] = ori === 1 ? 
+                [originalFaces[1], originalFaces[0]] : 
+                [originalFaces[0], originalFaces[1]];
+            
+            const result = {
+                right: -1,
+                left: -1,
+                top: -1,
+                bottom: -1,
+                front: -1,
+                back: -1
+            };
+            
+            // 明示的なマッピング（位置ごとに定義）
+            // Rust側の定義: 0: UF, 1: UR, 2: UB, 3: UL, 4: FL, 5: FR, 6: BR, 7: BL, 8: DF, 9: DR, 10: DB, 11: DL
+            if (edgeIndex === 0) { // UF: 上と前
+                result.top = color1;
+                result.front = color2;
+            } else if (edgeIndex === 1) { // UR: 上と右
+                result.top = color1;
+                result.right = color2;
+            } else if (edgeIndex === 2) { // UB: 上と奥
+                result.top = color1;
+                result.back = color2;
+            } else if (edgeIndex === 3) { // UL: 上と左
+                result.top = color1;
+                result.left = color2;
+            } else if (edgeIndex === 4) { // FL: 前と左
+                result.front = color1;
+                result.left = color2;
+            } else if (edgeIndex === 5) { // FR: 前と右
+                result.front = color1;
+                result.right = color2;
+            } else if (edgeIndex === 6) { // BR: 奥と右
+                result.back = color1;
+                result.right = color2;
+            } else if (edgeIndex === 7) { // BL: 奥と左
+                result.back = color1;
+                result.left = color2;
+            } else if (edgeIndex === 8) { // DF: 下と前
+                result.bottom = color1;
+                result.front = color2;
+            } else if (edgeIndex === 9) { // DR: 下と右
+                result.bottom = color1;
+                result.right = color2;
+            } else if (edgeIndex === 10) { // DB: 下と奥
+                result.bottom = color1;
+                result.back = color2;
+            } else if (edgeIndex === 11) { // DL: 下と左
+                result.bottom = color1;
+                result.left = color2;
+            }
+            
+            return result;
+        }
+
+        function createCubeVisualization(state) {
+            console.log('Creating cube visualization...');
+            
+            // Remove old cube group if exists
+            if (cubeGroup) {
+                scene.remove(cubeGroup);
+                // Dispose of geometries and materials to free memory
+                cubeGroup.traverse((child) => {
+                    if (child.geometry) child.geometry.dispose();
+                    if (child.material) {
+                        if (Array.isArray(child.material)) {
+                            child.material.forEach(mat => mat.dispose());
+                        } else {
+                            child.material.dispose();
+                        }
+                    }
+                });
+                cubeGroup = null;
+            }
+            
+            cubeGroup = new THREE.Group();
+            
+            const cubeSize = 0.9;
+            const gap = 0.05;
+            const colorMap = {
+                0: 0xffff00, // Yellow (U - 上面)
+                1: 0xffffff, // White (D - 下面)
+                2: 0x0066ff, // Blue (L - 左面)
+                3: 0x00ff00, // Green (R - 右面)
+                4: 0xff0000, // Red (F - 前面) - より鮮明
+                5: 0xffa500, // Orange (B - 奥面) - より明るく
+            };
+            
+            // State is passed as parameter
+            console.log('Creating visualization with state:', state);
+            console.log('  corner_perm:', state.corner_perm);
+            console.log('  corner_ori:', state.corner_ori);
+            console.log('  edge_perm:', state.edge_perm);
+            console.log('  edge_ori:', state.edge_ori);
+            
+            // Create corner pieces (8 corners)
+            for (let i = 0; i < 8; i++) {
+                const cornerDef = CORNER_POSITIONS[i];
+                const [x, y, z] = cornerDef.pos;
+                const colors = getCornerColors(i, state);
+                
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                
+                // Materials for 6 faces: [Right, Left, Top, Bottom, Front, Back]
+                const materials = [
+                    new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : 0x000000 }),
+                ];
+                
+                const cubelet = new THREE.Mesh(geometry, materials);
+                cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
+                
+                const edges = new THREE.EdgesGeometry(geometry);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+                cubelet.add(line);
+                cubeGroup.add(cubelet);
+            }
+            
+            // Create edge pieces (12 edges)
+            for (let i = 0; i < 12; i++) {
+                const edgeDef = EDGE_POSITIONS[i];
+                const [x, y, z] = edgeDef.pos;
+                const colors = getEdgeColors(i, state);
+                
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                
+                // 明示的に各面の色を取得
+                const materials = [
+                    new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : 0x000000 }),
+                ];
+                
+                const cubelet = new THREE.Mesh(geometry, materials);
+                cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
+                
+                const edges = new THREE.EdgesGeometry(geometry);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+                cubelet.add(line);
+                cubeGroup.add(cubelet);
+            }
+            
+            // Create center pieces (6 centers - fixed)
+            const centers = [
+                { pos: [1, 0, 0], color: 3 },   // Right - Green
+                { pos: [-1, 0, 0], color: 2 },  // Left - Blue
+                { pos: [0, 1, 0], color: 0 },   // Top - Yellow
+                { pos: [0, -1, 0], color: 1 },  // Bottom - White
+                { pos: [0, 0, 1], color: 4 },   // Front - Red
+                { pos: [0, 0, -1], color: 5 },  // Back - Orange
+            ];
+            
+            for (const center of centers) {
+                const [x, y, z] = center.pos;
+                const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+                
+                const materials = [
+                    new THREE.MeshStandardMaterial({ color: x === 1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: x === -1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: y === 1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: y === -1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: z === 1 ? colorMap[center.color] : 0x000000 }),
+                    new THREE.MeshStandardMaterial({ color: z === -1 ? colorMap[center.color] : 0x000000 }),
+                ];
+                
+                const cubelet = new THREE.Mesh(geometry, materials);
+                cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
+                
+                const edges = new THREE.EdgesGeometry(geometry);
+                const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+                cubelet.add(line);
+                cubeGroup.add(cubelet);
+            }
+            
+            scene.add(cubeGroup);
+            console.log('Cube visualization created, pieces:', cubeGroup.children.length);
+            console.log('CubeGroup added to scene. Scene children:', scene.children.length);
+        }
+
+        function updateVisualization() {
+            // Get current state and pass to visualization
+            const state = cube.getState();
+            createCubeVisualization(state);
+            
+            // Update status
+            const isSolved = cube.isSolved();
+            const statusEl = document.getElementById('status');
+            const solvedStatus = document.getElementById('solved-status');
+            
+            if (isSolved) {
+                statusEl.classList.add('solved');
+                solvedStatus.textContent = 'Solved ✓';
+            } else {
+                statusEl.classList.remove('solved');
+                solvedStatus.textContent = 'Scrambled';
+            }
+            
+            // Update legality info
+            const legality = cube.getLegality();
+            document.getElementById('legality-info').innerHTML = `
+                <strong>Legality Check:</strong><br>
+                Is Legal: ${legality.is_legal ? '✓' : '✗'}<br>
+                Corner Parity: ${legality.corner_parity}<br>
+                Edge Parity: ${legality.edge_parity}
+            `;
+            
+            // Update state info - show detailed arrays
+            // state is already obtained above
+            console.log('Detailed state:');
+            console.log('  corner_perm:', state.corner_perm);
+            console.log('  corner_ori:', state.corner_ori);
+            console.log('  edge_perm:', state.edge_perm);
+            console.log('  edge_ori:', state.edge_ori);
+            
+            document.getElementById('state-info').innerHTML = `
+                <strong>State:</strong><br>
+                <small>
+                corner_perm: [${state.corner_perm.join(', ')}]<br>
+                corner_ori: [${state.corner_ori.join(', ')}]<br>
+                edge_perm: [${state.edge_perm.join(', ')}]<br>
+                edge_ori: [${state.edge_ori.join(', ')}]
+                </small>
+            `;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        let animationStarted = false;
+        function startAnimation() {
+            if (!animationStarted) {
+                animationStarted = true;
+                console.log('Animation loop started');
+                animate();
+            }
+        }
+
+        // Global functions
+        window.applyMove = function(moveStr) {
+            try {
+                console.log('Applying move:', moveStr);
+                
+                // Store old rotation for animation
+                const oldRotation = cubeGroup.rotation.y;
+                
+                cube.applyMove(moveStr);
+                updateVisualization();
+                
+                // Add rotation animation for visual feedback
+                const rotationAmount = 0.2; // radians
+                cubeGroup.rotation.y = oldRotation + rotationAmount;
+                
+                // Animate back to original rotation
+                const startRotation = cubeGroup.rotation.y;
+                const targetRotation = oldRotation;
+                const duration = 200; // ms
+                const startTime = performance.now();
+                
+                function animateRotation() {
+                    const elapsed = performance.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3); // ease out cubic
+                    
+                    cubeGroup.rotation.y = startRotation + (targetRotation - startRotation) * eased;
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(animateRotation);
+                    }
+                }
+                animateRotation();
+                
+            } catch (e) {
+                console.error('Error applying move:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        window.applyAlgorithm = function() {
+            const alg = document.getElementById('algorithm-input').value;
+            if (!alg) return;
+            
+            try {
+                console.log('Applying algorithm:', alg);
+                cube.applyAlgorithm(alg);
+                updateVisualization();
+            } catch (e) {
+                console.error('Error applying algorithm:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        window.showInverse = function() {
+            const alg = document.getElementById('algorithm-input').value;
+            if (!alg) return;
+            
+            try {
+                const inv = wasmModule.invertAlgorithm(alg);
+                document.getElementById('algorithm-input').value = inv;
+            } catch (e) {
+                console.error('Error calculating inverse:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        window.resetCube = function() {
+            console.log('Resetting cube');
+            cube = new wasmModule.WasmCube();
+            window.cube = cube;
+            updateVisualization();
+        };
+
+        window.applyCommutator = function() {
+            const a = document.getElementById('alg-a').value;
+            const b = document.getElementById('alg-b').value;
+            if (!a || !b) {
+                alert('Please enter both algorithms');
+                return;
+            }
+            
+            try {
+                const result = wasmModule.commutator(a, b);
+                document.getElementById('algorithm-input').value = result;
+                cube.applyAlgorithm(result);
+                updateVisualization();
+            } catch (e) {
+                console.error('Error applying commutator:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        window.applyConjugate = function() {
+            const a = document.getElementById('alg-a').value;
+            const b = document.getElementById('alg-b').value;
+            if (!a || !b) {
+                alert('Please enter both algorithms');
+                return;
+            }
+            
+            try {
+                const result = wasmModule.conjugate(a, b);
+                document.getElementById('algorithm-input').value = result;
+                cube.applyAlgorithm(result);
+                updateVisualization();
+            } catch (e) {
+                console.error('Error applying conjugate:', e);
+                alert('Error: ' + e);
+            }
+        };
+
+        main();
+    </script>
+</body>
+</html>
