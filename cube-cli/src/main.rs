@@ -17,7 +17,7 @@ fn main() {
 }
 
 fn demo_basic_moves() {
-    println!("\n📌 Demo 1: Basic Moves");
+    println!("\n Demo 1: Basic Moves");
     println!("{}", "-".repeat(50));
 
     let mut cube = Cube::identity();
@@ -33,7 +33,7 @@ fn demo_basic_moves() {
 }
 
 fn demo_algorithm_operations() {
-    println!("\n📌 Demo 2: Algorithm Operations");
+    println!("\n Demo 2: Algorithm Operations");
     println!("{}", "-".repeat(50));
 
     // Sexy move: R U R' U'
@@ -55,7 +55,7 @@ fn demo_algorithm_operations() {
 }
 
 fn demo_group_theory() {
-    println!("\n📌 Demo 3: Group Theory Operations");
+    println!("\n Demo 3: Group Theory Operations");
     println!("{}", "-".repeat(50));
 
     let a = vec![Move::R];
@@ -76,7 +76,7 @@ fn demo_group_theory() {
 }
 
 fn demo_legality_check() {
-    println!("\n📌 Demo 4: Legality Check");
+    println!("\n Demo 4: Legality Check");
     println!("{}", "-".repeat(50));
 
     // Legal state (solved)
@@ -99,7 +99,7 @@ fn demo_legality_check() {
 }
 
 fn demo_cycle_decomposition() {
-    println!("\n📌 Demo 5: Cycle Decomposition");
+    println!("\n Demo 5: Cycle Decomposition");
     println!("{}", "-".repeat(50));
 
     let alg = vec![Move::R, Move::U, Move::Rp, Move::Up];

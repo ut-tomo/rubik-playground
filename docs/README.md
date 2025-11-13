@@ -16,6 +16,7 @@ Rustで実装されたルービックキューブのロジックをWebAssembly�
 -  **Interactive Controls** - 直感的な操作と手の入力に対応
 -  **Algorithm Support** - 標準的なキューブ記法（R, U, F, etc.）をサポート
 
+
 ## Tech Stack
 
 - **Backend**: Rust, WebAssembly (wasm-pack)
