@@ -27,15 +27,6 @@ publish = false
 [dependencies]
 cube-core = { path = "cube-core" }
 
-[[example]]
-name = "basic_usage"
-path = "examples/basic_usage.rs"
-
 [[test]]
 name = "core_integration"
 path = "tests/core_integration.rs"
-
-[[bench]]
-name = "core_benches"
-path = "benches/core_benches.rs"
-harness = false

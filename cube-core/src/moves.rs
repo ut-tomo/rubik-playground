@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Move {
     U, U2, Up, //順に時計回り, 180度, 反時計回り
     D, D2, Dp,
