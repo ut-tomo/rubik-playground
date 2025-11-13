@@ -16,12 +16,13 @@ fn test_apply_move() {
 }
 
 #[test]
-fn test_algorithm_inverse() {
+fn test_algorithm_application() {
     let mut cube = Cube::identity();
     let alg = vec![Move::R, Move::U, Move::Rp, Move::Up];
-    apply_alg(&mut cube, &alg);
+    cube = apply_alg(&cube, &alg);
+    assert!(!cube.is_solved());
     let inv = invert_alg(&alg);
-    apply_alg(&mut cube, &inv);
+    cube = apply_alg(&cube, &inv);
     assert!(cube.is_solved());
 }
 

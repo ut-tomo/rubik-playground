@@ -43,14 +43,14 @@ fn demo_algorithm_operations() {
 
     // Apply algorithm
     let mut cube = Cube::identity();
-    apply_alg(&mut cube, &sexy_move);
+    cube = apply_alg(&cube, &sexy_move);
     println!("  After applying: solved = {}", cube.is_solved());
 
     // Calculate and apply inverse
     let inverse = invert_alg(&sexy_move);
     println!("\nInverse algorithm: U R U' R'");
     println!("  Length: {} moves", inverse.len());
-    apply_alg(&mut cube, &inverse);
+    cube = apply_alg(&cube, &inverse);
     println!("  After inverse: solved = {}", cube.is_solved());
 }
 
@@ -66,8 +66,7 @@ fn demo_group_theory() {
     println!("Commutator [R, U] = R U R' U'");
     println!("  Length: {} moves", comm.len());
 
-    let mut cube = Cube::identity();
-    apply_alg(&mut cube, &comm);
+    let _cube = apply_alg(&Cube::identity(), &comm);
     println!("  Affects: corners only (typical for [R,U])");
 
     // Conjugate: A B A'
@@ -91,8 +90,7 @@ fn demo_legality_check() {
     println!("  Is legal: {}", info.is_legal);
 
     // After some moves
-    let mut cube2 = Cube::identity();
-    apply_alg(&mut cube2, &vec![Move::R, Move::U, Move::Rp, Move::Up]);
+    let cube2 = apply_alg(&Cube::identity(), &[Move::R, Move::U, Move::Rp, Move::Up]);
     let info2 = cube2.legality();
     println!("\nAfter R U R' U':");
     println!("  Corner parity: {}", info2.corner_parity);
@@ -104,9 +102,8 @@ fn demo_cycle_decomposition() {
     println!("\n📌 Demo 5: Cycle Decomposition");
     println!("{}", "-".repeat(50));
 
-    let mut cube = Cube::identity();
     let alg = vec![Move::R, Move::U, Move::Rp, Move::Up];
-    apply_alg(&mut cube, &alg);
+    let cube = apply_alg(&Cube::identity(), &alg);
 
     let c_cycles = corner_cycles(&cube);
     let e_cycles = edge_cycles(&cube);

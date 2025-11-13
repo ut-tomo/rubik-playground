@@ -20,6 +20,12 @@ pub struct WasmCube {
     inner: Cube,
 }
 
+impl Default for WasmCube {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[wasm_bindgen]
 impl WasmCube {
     #[wasm_bindgen(constructor)]
