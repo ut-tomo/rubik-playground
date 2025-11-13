@@ -186,18 +186,22 @@ impl Cube {
         let eo = self.edge_ori;
 
         // corners: cycle (0 3 7 4) 時計回り(左から見て) with twist
-        // 結果: [3, ..., 7, 4, 0], ori: [2, 0, 0, 1, 1, 0, 0, 2]
+        // 標準的なorientation: U/D面の色の位置変化で決定
+        // 0(UFL)→4(DFL): U面色が下に, +2
+        // 3(UBL)→0(UFL): U面色がそのまま上に, +1
+        // 7(DBL)→3(UBL): D面色が上に, +2
+        // 4(DFL)→7(DBL): D面色がそのまま下に, +1
         self.corner_perm[0] = cp[3];
-        self.corner_ori[0]  = (co[3] + 2) % 3;
+        self.corner_ori[0]  = (co[3] + 1) % 3;
 
         self.corner_perm[3] = cp[7];
-        self.corner_ori[3]  = (co[7] + 1) % 3;
+        self.corner_ori[3]  = (co[7] + 2) % 3;
 
         self.corner_perm[7] = cp[4];
-        self.corner_ori[7]  = (co[4] + 2) % 3;
+        self.corner_ori[7]  = (co[4] + 1) % 3;
 
         self.corner_perm[4] = cp[0];
-        self.corner_ori[4]  = (co[0] + 1) % 3;
+        self.corner_ori[4]  = (co[0] + 2) % 3;
 
         // 他の corners はそのまま
         self.corner_perm[1] = cp[1];
@@ -252,18 +256,23 @@ impl Cube {
         let eo = self.edge_ori;
 
         // corners: cycle (1 2 6 5) 時計回り(右から見て) with twist
-        // 結果: [., 5, 1, ., ., 6, 2, .]
+        // 標準的なorientation: L面と対称だが鏡像
+        // サイクル: 1←5, 2←1, 6←2, 5←6 (逆読み: 5→1, 1→2, 2→6, 6→5)
+        // 5(DFR)→1(UFR): D→U, +2
+        // 1(UFR)→2(UBR): U→U, +1
+        // 2(UBR)→6(DBR): U→D, +2
+        // 6(DBR)→5(DFR): D→D, +1
         self.corner_perm[1] = cp[5];
-        self.corner_ori[1]  = (co[5] + 1) % 3;
+        self.corner_ori[1]  = (co[5] + 2) % 3;
 
         self.corner_perm[2] = cp[1];
-        self.corner_ori[2]  = (co[1] + 2) % 3;
+        self.corner_ori[2]  = (co[1] + 1) % 3;
 
         self.corner_perm[6] = cp[2];
-        self.corner_ori[6]  = (co[2] + 1) % 3;
+        self.corner_ori[6]  = (co[2] + 2) % 3;
 
         self.corner_perm[5] = cp[6];
-        self.corner_ori[5]  = (co[6] + 2) % 3;
+        self.corner_ori[5]  = (co[6] + 1) % 3;
 
         // 他の corners はそのまま
         self.corner_perm[0] = cp[0];
@@ -318,15 +327,19 @@ impl Cube {
         let eo = self.edge_ori;
 
         // corners: cycle (0 1 5 4) 時計回り(前から見て) with twist
-        // 結果: [4, 0, ., ., 1, 5, ., .], ori: [2, 2, 1, 1, 0, 0, 0, 0]
+        // 標準的なorientation: U/D↔F面の移動
+        // 0(UFL)→1(UFR): 側面→側面, +1
+        // 1(UFR)→5(DFR): U→D, +2
+        // 5(DFR)→4(DFL): 側面→側面, +1
+        // 4(DFL)→0(UFL): D→U, +2
         self.corner_perm[0] = cp[4];
         self.corner_ori[0]  = (co[4] + 2) % 3;
 
         self.corner_perm[1] = cp[0];
-        self.corner_ori[1]  = (co[0] + 2) % 3;
+        self.corner_ori[1]  = (co[0] + 1) % 3;
 
         self.corner_perm[5] = cp[1];
-        self.corner_ori[5]  = (co[1] + 1) % 3;
+        self.corner_ori[5]  = (co[1] + 2) % 3;
 
         self.corner_perm[4] = cp[5];
         self.corner_ori[4]  = (co[5] + 1) % 3;
@@ -384,18 +397,23 @@ impl Cube {
         let eo = self.edge_ori;
 
         // corners: cycle (3 2 6 7) 時計回り(後ろから見て) with twist
-        // 結果: [., ., 2, 6, ., ., 7, 3], ori: [0, 0, 0, 0, 0, 0, 1, 1, 2, 2]
-        self.corner_perm[3] = cp[2];
-        self.corner_ori[3]  = co[2];
+        // 標準的なorientation: F面と対称だが鏡像
+        // サイクル: 3←7, 2←3, 6←2, 7←6 (逆読み: 7→3, 3→2, 2→6, 6→7)
+        // 7(DBL)→3(UBL): D→U, +2
+        // 3(UBL)→2(UBR): U→U, +1
+        // 2(UBR)→6(DBR): U→D, +2
+        // 6(DBR)→7(DBL): D→D, +1
+        self.corner_perm[3] = cp[7];
+        self.corner_ori[3]  = (co[7] + 2) % 3;
 
-        self.corner_perm[2] = cp[6];
-        self.corner_ori[2]  = co[6];
+        self.corner_perm[2] = cp[3];
+        self.corner_ori[2]  = (co[3] + 1) % 3;
 
-        self.corner_perm[6] = cp[7];
-        self.corner_ori[6]  = (co[7] + 1) % 3;
+        self.corner_perm[6] = cp[2];
+        self.corner_ori[6]  = (co[2] + 2) % 3;
 
-        self.corner_perm[7] = cp[3];
-        self.corner_ori[7]  = (co[3] + 2) % 3;
+        self.corner_perm[7] = cp[6];
+        self.corner_ori[7]  = (co[6] + 1) % 3;
 
         // 他の corners
         self.corner_perm[0] = cp[0];
