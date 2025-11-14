@@ -4,25 +4,35 @@ Rust + WebAssemblyで動くインタラクティブなルービックキュー�
 
 🌐 **[デモページ](https://ut-tomo.github.io/rubik-playground/)**
 
-## About
+# Rubik & Group Theory Playground (docs)
 
-Rustで実装されたルービックキューブのロジックをWebAssemblyにコンパイルし、Three.jsを使用して3Dビジュアライゼーションを実現したWebアプリケーションです。
+この `docs/` フォルダは GitHub Pages に配置するデプロイ用コンテンツ用です。内容はトップの README と同様に、デモページの簡潔な説明を掲載しています。
 
-ブラウザ上でリアルタイムにキューブを操作でき、アルゴリズムの動きを視覚的に確認できます。
+🌐 デモ: https://ut-tomo.github.io/rubik-playground/
 
-## Features
+## 概要
 
--  **Rust + WebAssembly** - 高速かつ安全なキューブロジックの実装
--  **Interactive Controls** - 直感的な操作と手の入力に対応
--  **Algorithm Support** - 標準的なキューブ記法（R, U, F, etc.）をサポート
+ブラウザ上で Rust 実装（WebAssembly）と Three.js による 3D 可視化を組み合わせたインタラクティブなルービックキューブのデモです。UI から基本手やアルゴリズムを入力して動作を確認できます。
 
+## すぐに試す（ローカル）
 
-## Tech Stack
+```bash
+cd cube-wasm
+wasm-pack build --target web
+python3 -m http.server 8000
+# ブラウザで http://localhost:8000 を開く
+```
 
-- **Backend**: Rust, WebAssembly (wasm-pack)
-- **Frontend**: Three.js, Vanilla JavaScript
-- **Deploy**: GitHub Pages
+## 操作のポイント
 
-## License
+- シングマスター記法で手順を入力（例: `R U R' U'`）。
+- Quick Moves、Algorithm、Advanced（Commutator / Conjugate）を UI 上で使用できます。
+
+## 技術スタック
+
+- Rust, wasm-pack, WebAssembly
+- Three.js
+
+## ライセンス
 
 MIT
