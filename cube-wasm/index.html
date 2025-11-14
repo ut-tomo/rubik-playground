@@ -47,15 +47,14 @@
                 <h3>
                     シングマスター記法:
                 </h3>
-                <p style="margin-left: 20px;">
-                    $U: $上面を時計回りに$90$度回転$(\text{Up})$ <br>
-                    $D: $下面を時計回りに$90$度回転$(\text{Down})$ <br>
-                    $L: $左面を時計回りに$90$度回転$(\text{Left})$ <br>
-                    $R: $右面を時計回りに$90$度回転$(\text{Right})$ <br>
-                    $F: $前面を時計回りに$90$度回転$(\text{Front})$ <br>
-                    $B: $背面を時計回りに$90$度回転$(\text{Back})$
-                </p>
-                <p>
+                    <p style="margin-left: 20px;">
+                    $U: $上面を時計回りに90度回転 (Up)<br>
+                    $D: $下面を時計回りに90度回転 (Down)<br>
+                    $L: $左面を時計回りに90度回転 (Left)<br>
+                    $R: $右面を時計回りに90度回転 (Right)<br>
+                    $F: $前面を時計回りに90度回転 (Front)<br>
+                    $B: $背面を時計回りに90度回転 (Back)<br>
+                    <p>
                     ただし, 上面は黄色, 下面は白色, 左面は青色, 右面は緑色, 前面は赤色, 背面は橙色で固定されています。また, 時計回りはそれぞれの面に向かい合った際の方向を指します。
                 </p>
                 <p>
@@ -74,7 +73,8 @@
                 <h2>群論 $\times$ ルービックキューブ</h2>
                 <p class="features">
                     シングマスター記法およびこのPlaygroundの直感的な操作の助けを借りて, 群論的な観点の理解を助けます。
-                    また, この内容の作成にあたり「群論の味わい 置換群で解き明かすルービックキューブと15パズル」(David Joyner著, 川辺治之訳 共立出版)を参考にしています。
+                    また, この内容の作成にあたり「群論の味わい 置換群で解き明かすルービックキューブと15パズル」(David Joyner著, 川辺治之訳 共立出版)および
+                    「群論への第一歩 集合、写像から準同型定理まで」(結城浩著 SB Creative) を参考にしています。
                 </p>
             </div>
         </section>
@@ -83,9 +83,20 @@
         <section id="demo" class="content-section demo-section">
             <div class="section-inner">
                 <h2>Try It Out</h2>
-                <p class="demo-description">
+                <p>
                     下のキューブを操作してみてみましょう！
                 </p>
+                <p>
+                    参考までに, よく知られたルービックキューブの操作と対応するシングマスター記法を示します。Copy & Paste して試してみてください。
+                </p>
+                <div>
+                    <p>・セクシームーブ <span class="notation-snippet">R U R' U'</span></p>
+                    <p>・右トリガー (右回転) <span class="notation-snippet">U R U' R'</span></p>
+                </div>
+                <p>
+                    これらをそれぞれ6回連続で適用すると元に戻ることを確認してみてください !
+                </p>
+                    
             </div>
         </section>
     
