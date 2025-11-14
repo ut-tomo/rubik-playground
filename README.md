@@ -1,9 +1,3 @@
-# 🧊 Rubik's Cube Playground
-
-Rust + WebAssemblyで動くインタラクティブなルービックキューブシミュレーター
-
-🌐 **[デモページ](https://ut-tomo.github.io/rubik-playground/)**
-
 # Rubik & Group Theory Playground
 
 WebAssembly + Three.js で動作する、インタラクティブなルービックキューブのデモページです。
@@ -13,11 +7,6 @@ WebAssembly + Three.js で動作する、インタラクティブなルービッ
 ## 概要
 
 このプレイグラウンドは、Rust 実装のキューブロジック（WebAssembly 経由）と Three.js による 3D 可視化を組み合わせ、ブラウザ上でキューブを操作・観察できるデモです。キューブの状態（置換・向き）が画面上に表示され、アルゴリズムの効果を視覚的に確認できます。
-
-## すぐに試す
-
-1. ブラウザで GitHub Pages のデモにアクセスする: https://ut-tomo.github.io/rubik-playground/
-2. ローカルで動かす場合（開発環境が整っている場合）:
 
 ```bash
 cd cube-wasm
