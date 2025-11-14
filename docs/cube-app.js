@@ -391,7 +391,9 @@ window.applyCommutator = function() {
     }
     
     try {
-        const result = wasmModule.commutator(a, b);
+        let result = wasmModule.commutator(a, b);
+
+        result = result.replace(/([UDLRFB])p/g, "$1'");
         document.getElementById('algorithm-input').value = result;
         cube.applyAlgorithm(result);
         updateVisualization();
@@ -410,7 +412,9 @@ window.applyConjugate = function() {
     }
     
     try {
-        const result = wasmModule.conjugate(a, b);
+        let result = wasmModule.conjugate(a, b);
+
+        result = result.replace(/([UDLRFB])p/g, "$1'");
         document.getElementById('algorithm-input').value = result;
         cube.applyAlgorithm(result);
         updateVisualization();

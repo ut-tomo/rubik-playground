@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧊 Rubik's Cube Playground</title>
+    <title>Rubik & Group Theory Playground</title>
     <meta name="description" content="WebAssembly + Three.jsで作られたインタラクティブなルービックキューブシミュレーター">
     <link rel="stylesheet" href="style.css">
     <script type="importmap">
@@ -14,6 +14,14 @@
         }
     }
     </script>
+    <script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+        window.MathJax = {
+        tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+        };
+    </script>
 </head>
 <body>
     <!-- ヘッダー -->
@@ -23,7 +31,6 @@
         </div>
         <nav class="site-nav">
             <a href="#about">About</a>
-            <a href="#features">Features</a>
             <a href="#demo">Demo</a>
         </nav>
     </header>
@@ -34,32 +41,68 @@
         <section id="about" class="content-section">
             <div class="section-inner">
                 <h2>About</h2>
-
+                <p>
+                    このPlaygroundは, シングマスター記法に基づく直感的なルービックキューブ操作を提供します:
+                </p>
+                <h3>
+                    シングマスター記法:
+                </h3>
+                    <p style="margin-left: 20px;">
+                    $U: $上面を時計回りに90度回転 (Up)<br>
+                    $D: $下面を時計回りに90度回転 (Down)<br>
+                    $L: $左面を時計回りに90度回転 (Left)<br>
+                    $R: $右面を時計回りに90度回転 (Right)<br>
+                    $F: $前面を時計回りに90度回転 (Front)<br>
+                    $B: $背面を時計回りに90度回転 (Back)<br>
+                    <p>
+                    ただし, 上面は黄色, 下面は白色, 左面は青色, 右面は緑色, 前面は赤色, 背面は橙色で固定されています。また, 時計回りはそれぞれの面に向かい合った際の方向を指します。
+                </p>
+                <p>
+                また, 各記号の後に'(アポストロフィ)をつけることはその逆操作をすることを示し, 2をつけることはその操作を2回連続して行う, つまり$180$度回転を行うことを意味します。
+                </p>
+                <p>
+                    Quick Movesのセクションのボタンはこれらの基本操作を適用するものです。また, Algorithmセクションではこれらの記法を用いて連続した操作を行うことができます。ただし, 書き込む際は各スペースの間に半角スペースを入れてください。
                 </p>
             </div>
         </section>
-
         <!-- Features セクション -->
-        <section id="features" class="content-section">
-            <div class="section-inner">
-                <h2>Features</h2>
-               
-            </div>
-        </section>
 
         <!-- Demo セクション -->
         <section id="demo" class="content-section demo-section">
             <div class="section-inner">
-                <h2>Try It Out</h2>
-                <p class="demo-description">
-                    下のキューブを操作してみてください。ボタンをクリックするか、アルゴリズムを入力できます。
+                <h2>群論 $\times$ ルービックキューブ</h2>
+                <p class="features">
+                    シングマスター記法およびこのPlaygroundの直感的な操作の助けを借りて, 群論的な観点の理解を助けます。
+                    また, この内容の作成にあたり「群論の味わい 置換群で解き明かすルービックキューブと15パズル」(David Joyner著, 川辺治之訳 共立出版)および
+                    「群論への第一歩 集合、写像から準同型定理まで」(結城浩著 SB Creative) を参考にしています。
                 </p>
             </div>
         </section>
-    </main>
+
+        <br>
+        <section id="demo" class="content-section demo-section">
+            <div class="section-inner">
+                <h2>Try It Out</h2>
+                <p>
+                    下のキューブを操作してみてみましょう！
+                </p>
+                <p>
+                    参考までに, よく知られたルービックキューブの操作と対応するシングマスター記法を示します。Copy & Paste して試してみてください。
+                </p>
+                <div>
+                    <p>・セクシームーブ <span class="notation-snippet">R U R' U'</span></p>
+                    <p>・右トリガー (右回転) <span class="notation-snippet">U R U' R'</span></p>
+                </div>
+                <p>
+                    これらをそれぞれ6回連続で適用すると元に戻ることを確認してみてください !
+                    後で触れますが, このような部分的な交換を行うことを目的とした操作は Commutator (A→B→A'→B')という形でも表現できます。
+                </p>
+                    
+            </div>
+        </section>
     
     <div id="loading">
-        <h1>🧊 Loading Rubik's Cube Playground...</h1>
+        <h1>Loading Rubik's Cube Playground...</h1>
         <p id="loading-status">Initializing...</p>
         <div style="margin-top: 20px;">
             <div style="width: 300px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;">
@@ -126,6 +169,90 @@
             </div>
         </div>
     </div>
+        <section id="demo" class="content-section demo-section">
+            <div class="section-inner">
+                <h2>1. 操作の数学的記述</h2>
+                <details class="collapsible">
+                    <summary>1-1. 構造の基本表現</summary>
+                    <div class="collapsible-content">
+                        <p class="gt1">
+                            ルービックキューブ操作のモデル化は個々の小立方体の位置と向きを表現することによります。このPlaygroundでもそのように実装されています。
+                            Info部分にはその状態が記述されています。
+                        </p>
+                        <p>
+                            まず $3\times3\times3$ ルービックキューブは27個の小立方体から構成されています。
+                            キューブは観察されず, また6面それぞれの中心に存在するキューブはあらゆる操作に対して位置関係が変化せず, 固定しても操作の一般性を失わないため群構造からは除外されます。<br>
+                            よって残りのキューブを特徴づければ良いことになります。これらはさらに2種類に分類できます。
+                        </p>
+                        <p>
+                            一つは立方体の頂点位置に存在する8個のコーナーキューブであり, これは State 部分で corner_perm, および corner_ori という表現がされていますが, 
+                            位置と拗れ具合により特徴づけられます。(あるコーナーにあるキューブと拗れ具合の情報があれば, その部分の3面の色が定まるということです。このPlaygroundでも構造体がキューブの位置と向きを保持し, そこから色を割り出しています。)<br>
+                            また拗れ具合は3値による表現がされますが, これは物理キューブを持っている方は実際に(ねじれないタイプのやつもあると思いますが)ねじってみると3パターンあるとわかります。
+                        </p>
+                        <p>
+                            もう一つは立方体の辺の中央に存在する12個のエッジキューブであり, これは edge_perm, および edge_ori という表現がされています。
+                            こちらのorientationは裏表の2値であることはわかりやすいでしょう。
+                        </p>
+                    </div>
+                </details>
+                <details class="collapsible">
+                    <summary>1-2. 操作と写像</summary>
+                    <div class="collapsible-content">
+                        <p class="gt2">
+                            ルービックキューブは小立方体の集合としてみなせるのでした。そして, ルービックキューブに施されるあらゆる操作はこれらの小立方体集合上の全単射として記述できます。
+                            操作は確かにあるキューブを別の場所に移動させ, キューブが欠落する部分もないですし, 各元に対してちょうど一つの像を対応させますから, ほぼ自明でこれ自体はなんてことないように思えます。
+                            しかしこれが操作が置換として記述できることを保証してくれ, 群論的な議論の土台を提供してくれます。このおかげで, 合成や位数, 逆操作などを厳密に扱えます。
+                        </p>
+                </details>
+
+            </div>
+        </section>
+        <br>
+        <section id="demo" class="content-section demo-section">
+            <div class="section-inner">
+                <h2>2. 置換群</h2>
+                <p class="gt1">
+                    
+                </p>
+            </div>
+        </section>
+        <br>
+        <section id="demo" class="content-section demo-section">
+            <div class="section-inner">
+                <h2>3. 巡換</h2>
+                <p class="gt1">
+                    
+                </p>
+            </div>
+        </section>
+        <br>
+        <section id="demo" class="content-section demo-section">
+            <div class="section-inner">
+                <h2>4. 交換子 (Commutator)</h2>
+                <p class="gt1">
+                    
+                </p>
+            </div>
+        </section>
+                <br>
+        <section id="demo" class="content-section demo-section">
+            <div class="section-inner">
+                <h2>5. 共役 (Conjugate)</h2>
+                <p class="gt1">
+                    
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p class="tech-stack-label">Powered by</p>
+        <div class="tech-stack">
+            <span>Rust</span>
+            <span>WebAssembly</span>
+            <span>Three.js</span>
+        </div>
+    </footer>
 
     <script type="module">
         import { main } from './cube-app.js';

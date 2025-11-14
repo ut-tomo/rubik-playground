@@ -95,6 +95,7 @@
                 </div>
                 <p>
                     これらをそれぞれ6回連続で適用すると元に戻ることを確認してみてください !
+                    後で触れますが, このような部分的な交換を行うことを目的とした操作は Commutator (A→B→A'→B')という形でも表現できます。
                 </p>
                     
             </div>
@@ -170,7 +171,40 @@
     </div>
         <section id="demo" class="content-section demo-section">
             <div class="section-inner">
-                <h2>操作の数学的記述</h2>
+                <h2>1. 操作の数学的記述</h2>
+                <details class="collapsible">
+                    <summary>1-1. 構造の基本表現</summary>
+                    <div class="collapsible-content">
+                        <p class="gt1">
+                            ルービックキューブ操作のモデル化は個々の小立方体の位置と向きを表現することによります。このPlaygroundでもそのように実装されています。
+                            Info部分にはその状態が記述されています。
+                        </p>
+                        <p>
+                            まず $3\times3\times3$ ルービックキューブは27個の小立方体から構成されています。
+                            キューブは観察されず, また6面それぞれの中心に存在するキューブはあらゆる操作に対して位置関係が変化せず, 固定しても操作の一般性を失わないため群構造からは除外されます。<br>
+                            よって残りのキューブを特徴づければ良いことになります。これらはさらに2種類に分類できます。
+                        </p>
+                        <p>
+                            一つは立方体の頂点位置に存在する8個のコーナーキューブであり, これは State 部分で corner_perm, および corner_ori という表現がされていますが, 
+                            位置と拗れ具合により特徴づけられます。(あるコーナーにあるキューブと拗れ具合の情報があれば, その部分の3面の色が定まるということです。このPlaygroundでも構造体がキューブの位置と向きを保持し, そこから色を割り出しています。)<br>
+                            また拗れ具合は3値による表現がされますが, これは物理キューブを持っている方は実際に(ねじれないタイプのやつもあると思いますが)ねじってみると3パターンあるとわかります。
+                        </p>
+                        <p>
+                            もう一つは立方体の辺の中央に存在する12個のエッジキューブであり, これは edge_perm, および edge_ori という表現がされています。
+                            こちらのorientationは裏表の2値であることはわかりやすいでしょう。
+                        </p>
+                    </div>
+                </details>
+                <details class="collapsible">
+                    <summary></summary>
+                </details>
+
+            </div>
+        </section>
+        <br>
+        <section id="demo" class="content-section demo-section">
+            <div class="section-inner">
+                <h2>2. 置換群</h2>
                 <p class="gt1">
                     
                 </p>
@@ -179,7 +213,7 @@
         <br>
         <section id="demo" class="content-section demo-section">
             <div class="section-inner">
-                <h2>置換群</h2>
+                <h2>3. 巡換</h2>
                 <p class="gt1">
                     
                 </p>
@@ -188,16 +222,7 @@
         <br>
         <section id="demo" class="content-section demo-section">
             <div class="section-inner">
-                <h2>巡換</h2>
-                <p class="gt1">
-                    
-                </p>
-            </div>
-        </section>
-        <br>
-        <section id="demo" class="content-section demo-section">
-            <div class="section-inner">
-                <h2>交換子 (Commutator)</h2>
+                <h2>4. 交換子 (Commutator)</h2>
                 <p class="gt1">
                     
                 </p>
@@ -206,7 +231,7 @@
                 <br>
         <section id="demo" class="content-section demo-section">
             <div class="section-inner">
-                <h2>共役 (Conjugate)</h2>
+                <h2>5. 共役 (Conjugate)</h2>
                 <p class="gt1">
                     
                 </p>

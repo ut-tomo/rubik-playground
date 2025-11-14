@@ -152,6 +152,43 @@ body {
     font-size: 0.95em;
 }
 
+.collapsible {
+    margin: 20px 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+
+.collapsible summary {
+    cursor: pointer;
+    padding: 10px 0;
+    font-weight: 600;
+    font-size: 1.1em;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.collapsible summary::-webkit-details-marker {
+    display: none;
+}
+
+.collapsible summary::after {
+    content: '+';
+    font-size: 1.2em;
+    transition: transform 0.2s;
+}
+
+.collapsible[open] summary::after {
+    content: '–';
+}
+
+.collapsible-content {
+    padding-top: 12px;
+}
+
 .site-footer {
     text-align: center;
     padding: 40px 20px 60px 20px;
