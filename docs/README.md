@@ -1,9 +1,3 @@
-# 🧊 Rubik's Cube Playground
-
-Rust + WebAssemblyで動くインタラクティブなルービックキューブシミュレーター
-
-🌐 **[デモページ](https://ut-tomo.github.io/rubik-playground/)**
-
 # Rubik & Group Theory Playground (docs)
 
 この `docs/` フォルダは GitHub Pages に配置するデプロイ用コンテンツ用です。内容はトップの README と同様に、デモページの簡潔な説明を掲載しています。
@@ -14,14 +8,6 @@ Rust + WebAssemblyで動くインタラクティブなルービックキュー�
 
 ブラウザ上で Rust 実装（WebAssembly）と Three.js による 3D 可視化を組み合わせたインタラクティブなルービックキューブのデモです。UI から基本手やアルゴリズムを入力して動作を確認できます。
 
-## すぐに試す（ローカル）
-
-```bash
-cd cube-wasm
-wasm-pack build --target web
-python3 -m http.server 8000
-# ブラウザで http://localhost:8000 を開く
-```
 
 ## 操作のポイント
 

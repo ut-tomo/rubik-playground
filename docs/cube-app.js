@@ -258,7 +258,8 @@ function setupScene() {
     const container = document.getElementById('canvas-container');
     
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
+    // Darker background for better contrast
+    scene.background = new THREE.Color(0x0b0b12);
 
     camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
     camera.position.set(5, 5, 5);
