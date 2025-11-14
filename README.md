@@ -8,12 +8,7 @@ WebAssembly + Three.js で動作する、インタラクティブなルービッ
 
 このプレイグラウンドは、Rust 実装のキューブロジック（WebAssembly 経由）と Three.js による 3D 可視化を組み合わせ、ブラウザ上でキューブを操作・観察できるデモです。キューブの状態（置換・向き）が画面上に表示され、アルゴリズムの効果を視覚的に確認できます。
 
-```bash
-cd cube-wasm
-wasm-pack build --target web
-python3 -m http.server 8000
-# ブラウザで http://localhost:8000 を開く
-```
+
 
 ## 基本操作（簡易）
 
