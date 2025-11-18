@@ -137,13 +137,14 @@ function createCubeVisualization(state) {
     const cubeSize = 0.9;
     const gap = 0.05;
     const colorMap = {
-        0: 0xffff00, // Yellow
-        1: 0xffffff, // White
-        2: 0x2130E7, // Blue
-        3: 0x00ff00, // Green
-        4: 0xff0000, // Red
-        5: 0xffac51, // Orange
+        0: 0xffffff, // White
+        1: 0xffff00, // Yellow
+        2: 0xffac51, // Orange
+        3: 0xff0000, // Red
+        4: 0x00ff00, // Green
+        5: 0x2130E7, // Blue
     };
+        
     
     // Create corners
     for (let i = 0; i < 8; i++) {
