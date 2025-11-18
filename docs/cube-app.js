@@ -134,18 +134,33 @@ function createCubeVisualization(state) {
     
     cubeGroup = new THREE.Group();
     
-    // Increase cubelet size and reduce gap so faces visually touch
     const cubeSize = 0.98;
     const gap = 0.02;
-    const bgColor = 0xE9ECEF; // match scene background to hide tiny seams
+    const bgColor = 0xE9ECEF; 
+    // More saturated, less-washed palette
     const colorMap = {
-        0: 0xffffff, // White
-        1: 0xffff00, // Yellow
-        2: 0xffac51, // Orange
-        3: 0xff0000, // Red
-        4: 0x00ff00, // Green
-        5: 0x2130E7, // Blue
+        0: 0xffffff, // white
+        1: 0xFFFF00, // yellow
+        2: 0xFF9533, // orange
+        3: 0xFF4D6D, // stronger pink
+        4: 0x00FF00, // vivid yellow-green
+        5: 0x42A5F5, // blue
     };
+    
+    // Helper to create face material with special handling for white
+    function makeFaceMaterial(faceColor) {
+        const isBg = faceColor === bgColor;
+        const isWhite = faceColor === 0xffffff;
+        if (isWhite) {
+            return new THREE.MeshStandardMaterial({ color: faceColor, roughness: 0.15, emissive: 0xffffff, emissiveIntensity: 0.9 });
+        }
+        if (isBg) {
+            // background panels: keep subtle
+            return new THREE.MeshStandardMaterial({ color: faceColor, roughness: 0.6 });
+        }
+        // regular colored faces: moderate roughness so colors pop
+        return new THREE.MeshStandardMaterial({ color: faceColor, roughness: 0.32 });
+    }
         
     
     // Create corners
@@ -153,15 +168,21 @@ function createCubeVisualization(state) {
         const [x, y, z] = CORNER_POSITIONS[i].pos;
         const colors = getCornerColors(i, state);
         
-        const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-        const materials = [
-            new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : bgColor }),
-        ];
+            const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+            const faceRight = colors.right >= 0 ? colorMap[colors.right] : bgColor;
+            const faceLeft = colors.left >= 0 ? colorMap[colors.left] : bgColor;
+            const faceTop = colors.top >= 0 ? colorMap[colors.top] : bgColor;
+            const faceBottom = colors.bottom >= 0 ? colorMap[colors.bottom] : bgColor;
+            const faceFront = colors.front >= 0 ? colorMap[colors.front] : bgColor;
+            const faceBack = colors.back >= 0 ? colorMap[colors.back] : bgColor;
+            const materials = [
+                makeFaceMaterial(faceRight),
+                makeFaceMaterial(faceLeft),
+                makeFaceMaterial(faceTop),
+                makeFaceMaterial(faceBottom),
+                makeFaceMaterial(faceFront),
+                makeFaceMaterial(faceBack),
+            ];
         
         const cubelet = new THREE.Mesh(geometry, materials);
         cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
@@ -179,13 +200,19 @@ function createCubeVisualization(state) {
         const colors = getEdgeColors(i, state);
         
         const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+        const faceR = colors.right >= 0 ? colorMap[colors.right] : bgColor;
+        const faceL = colors.left >= 0 ? colorMap[colors.left] : bgColor;
+        const faceT = colors.top >= 0 ? colorMap[colors.top] : bgColor;
+        const faceB = colors.bottom >= 0 ? colorMap[colors.bottom] : bgColor;
+        const faceF = colors.front >= 0 ? colorMap[colors.front] : bgColor;
+        const faceBa = colors.back >= 0 ? colorMap[colors.back] : bgColor;
         const materials = [
-            new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : bgColor }),
+            makeFaceMaterial(faceR),
+            makeFaceMaterial(faceL),
+            makeFaceMaterial(faceT),
+            makeFaceMaterial(faceB),
+            makeFaceMaterial(faceF),
+            makeFaceMaterial(faceBa),
         ];
         
         const cubelet = new THREE.Mesh(geometry, materials);
@@ -211,13 +238,19 @@ function createCubeVisualization(state) {
     for (const center of centers) {
         const [x, y, z] = center.pos;
         const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+        const matPosX = x === 1 ? colorMap[center.color] : bgColor;
+        const matNegX = x === -1 ? colorMap[center.color] : bgColor;
+        const matPosY = y === 1 ? colorMap[center.color] : bgColor;
+        const matNegY = y === -1 ? colorMap[center.color] : bgColor;
+        const matPosZ = z === 1 ? colorMap[center.color] : bgColor;
+        const matNegZ = z === -1 ? colorMap[center.color] : bgColor;
         const materials = [
-            new THREE.MeshStandardMaterial({ color: x === 1 ? colorMap[center.color] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: x === -1 ? colorMap[center.color] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: y === 1 ? colorMap[center.color] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: y === -1 ? colorMap[center.color] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: z === 1 ? colorMap[center.color] : bgColor }),
-            new THREE.MeshStandardMaterial({ color: z === -1 ? colorMap[center.color] : bgColor }),
+            makeFaceMaterial(matPosX),
+            makeFaceMaterial(matNegX),
+            makeFaceMaterial(matPosY),
+            makeFaceMaterial(matNegY),
+            makeFaceMaterial(matPosZ),
+            makeFaceMaterial(matNegZ),
         ];
         
         const cubelet = new THREE.Mesh(geometry, materials);
@@ -280,14 +313,14 @@ function setupScene() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
     scene.add(ambientLight);
-
-    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+    
+    const directionalLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
     directionalLight1.position.set(5, 10, 5);
     scene.add(directionalLight1);
-
-    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.4);
+    
+    const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.8);
     directionalLight2.position.set(-5, -5, -5);
     scene.add(directionalLight2);
 

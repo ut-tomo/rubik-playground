@@ -140,7 +140,7 @@ function createCubeVisualization(state) {
     const colorMap = {
         0: 0xffffff, // White
         1: 0xffff00, // Yellow
-        2: 0xffac51, // Orange
+        2: 0xFF9533, // Orange
         3: 0xff0000, // Red
         4: 0x00ff00, // Green
         5: 0x2130E7, // Blue

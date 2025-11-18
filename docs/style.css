@@ -6,8 +6,11 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* darker gradient for better contrast, keep gradient feel */
-    background: linear-gradient(135deg, #33407a 0%, #4b2e6b 100%);
+    /* background color + subtle dot grid (kept only background change per request) */
+    background-color: #f8f9fa;
+    background-image: radial-gradient(circle, rgba(52, 152, 219, 0.2) 1.5px, transparent 1.5px);
+    background-size: 25px 25px;
+    background-attachment: fixed;
     color: white;
     min-height: 100vh;
 }
@@ -98,6 +101,14 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Make content-section's inner card transparent so body background shows
+   through content areas (re-applied per request). */
+.content-section .section-inner {
+    background: transparent !important;
+    border: none !important;
+    backdrop-filter: none !important;
+}
+
 .content-section h2 {
     font-size: 2em;
     margin-bottom: 20px;
@@ -147,10 +158,13 @@ body {
     display: inline-block;
     padding: 4px 10px;
     border-radius: 6px;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* pale yellow background for better contrast on light page background */
+    background: rgba(255, 243, 145, 0.95);
+    color: #111 !important;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     font-family: 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
     font-size: 0.95em;
+    font-weight: 600;
 }
 
 .collapsible {
@@ -188,6 +202,17 @@ body {
 
 .collapsible-content {
     padding-top: 12px;
+}
+
+/* Make collapsible blocks themselves fully transparent so they don't draw
+   their own background (the surrounding .section-inner may still provide
+   a translucent card behind them). Use !important to override earlier rules. */
+.collapsible,
+.collapsible summary,
+.collapsible-content {
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
 }
 
 .site-footer {
@@ -292,11 +317,8 @@ body {
 }
 
 #canvas-container {
-    /* Canvas container: page gradient kept, but add central black vignette
-       so only the cube area appears black. */
-    background:
-        radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 36%, rgba(0,0,0,0) 60%),
-        rgba(0, 0, 0, 0.12);
+    /* Canvas container: solid black background for the cube area */
+    background: #000;
     border-radius: 10px;
     overflow: hidden;
     display: flex;
@@ -319,17 +341,15 @@ body {
 /* Slightly adjust vignette size for medium and small screens */
 @media (max-width: 1024px) {
     #canvas-container {
-        background:
-            radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 50%),
-            rgba(0, 0, 0, 0.12);
+        /* Keep cube area solid black on medium screens as well */
+        background: #000;
     }
 }
 
 @media (max-width: 640px) {
     #canvas-container {
-        background:
-            radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 28%, rgba(0,0,0,0) 45%),
-            rgba(0, 0, 0, 0.12);
+        /* Keep cube area solid black on small screens as well */
+        background: #000;
     }
 }
 
@@ -477,4 +497,129 @@ input[type="text"]::placeholder {
     .section-inner {
         padding: 20px;
     }
+}
+
+/* --- Global text color: set all text to dark for requested change --- */
+:root { --global-text-color: #111; }
+/* Apply global text color; use !important to override specific rules that previously set white */
+body, body * {
+    color: var(--global-text-color) !important;
+}
+
+/* Keep white text for components with dark backgrounds for readability */
+.code-content,
+pre,
+code,
+.site-header,
+header,
+.site-footer,
+#controls,
+.notation-panel,
+.sidebar,
+button,
+.site-nav a {
+    color: #fff !important;
+}
+
+/* Placeholder inputs: keep lighter color but ensure legibility */
+input::placeholder,
+textarea::placeholder {
+    color: rgba(255,255,255,0.7) !important;
+}
+
+/* Improved styles for Algorithm / Advanced inputs and Quick Moves buttons */
+#algorithm-input,
+#alg-a,
+#alg-b {
+    background: #ffffff;
+    color: #111 !important;
+    border: 1px solid #d0d7de;
+    padding: 0.6rem 0.75rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    width: 100%;
+    box-shadow: 0 1px 3px rgba(16,24,40,0.06);
+    margin-bottom: 0.6rem;
+}
+
+#algorithm-input::placeholder,
+#alg-a::placeholder,
+#alg-b::placeholder {
+    color: rgba(0,0,0,0.45) !important;
+}
+
+.move-buttons button {
+    background: #ffffff;
+    color: #111 !important;
+    border: 1px solid #d1d5db;
+    padding: 10px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(16,24,40,0.06);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.move-buttons button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(16,24,40,0.12);
+    background: #f0f4f8;
+}
+
+.action-buttons button {
+    background: #ffffff;
+    color: #111 !important;
+    border: 1px solid #d1d5db;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(16,24,40,0.06);
+    transition: transform 0.12s ease;
+}
+
+.action-buttons button:hover { transform: translateY(-2px); }
+
+/* Make sure small dark-on-light controls remain readable */
+#controls .info-section,
+.section-inner {
+    color: #111 !important;
+}
+
+/* Yellow highlighter for h2 headings */
+h2 {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: inherit;
+}
+
+h2::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 2px;
+    width: 100%;
+    height: 12px;
+    background: linear-gradient(90deg, rgba(255,235,59,0.6) 0%, rgba(255,193,7,0.6) 50%, rgba(255,235,59,0.6) 100%);
+    z-index: -1;
+    border-radius: 2px;
+    transform: skew(-12deg);
+    animation: highlighter 0.8s ease-out;
+}
+
+article h2::after {
+    /* same style for article headings when used */
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 2px;
+    width: 100%;
+    height: 12px;
+    background: linear-gradient(90deg, rgba(255,235,59,0.6) 0%, rgba(255,193,7,0.6) 50%, rgba(255,235,59,0.6) 100%);
+    z-index: -1;
+    border-radius: 2px;
+    transform: skew(-12deg);
+    animation: highlighter 0.8s ease-out;
+}
+
+@keyframes highlighter {
+    0% { width: 0%; }
+    100% { width: 100%; }
 }
