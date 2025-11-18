@@ -291,14 +291,20 @@ body {
     margin: 0 auto;
 }
 
+/* Canvas container: keep the page gradient but add a central black vignette
+   so only the area directly behind the cube appears black. The cube's
+   WebGL canvas will render on top of this background. */
 #canvas-container {
-    background: rgba(0, 0, 0, 0.2);
+    background:
+        radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 36%, rgba(0,0,0,0) 60%),
+        rgba(0, 0, 0, 0.12);
     border-radius: 10px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 600px;
+    position: relative;
 }
 
 #controls {
@@ -431,6 +437,23 @@ input[type="text"]::placeholder {
 
     #controls {
         max-height: none;
+    }
+}
+
+/* Slightly adjust vignette size for medium and small screens */
+@media (max-width: 1024px) {
+    #canvas-container {
+        background:
+            radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 50%),
+            rgba(0, 0, 0, 0.12);
+    }
+}
+
+@media (max-width: 640px) {
+    #canvas-container {
+        background:
+            radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 28%, rgba(0,0,0,0) 45%),
+            rgba(0, 0, 0, 0.12);
     }
 }
 

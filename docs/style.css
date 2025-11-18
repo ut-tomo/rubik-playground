@@ -292,13 +292,18 @@ body {
 }
 
 #canvas-container {
-    background: rgba(0, 0, 0, 0.2);
+    /* Canvas container: page gradient kept, but add central black vignette
+       so only the cube area appears black. */
+    background:
+        radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 36%, rgba(0,0,0,0) 60%),
+        rgba(0, 0, 0, 0.12);
     border-radius: 10px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 600px;
+    position: relative;
 }
 
 #controls {
@@ -309,6 +314,23 @@ body {
     overflow-y: auto;
     max-height: 600px;
     border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Slightly adjust vignette size for medium and small screens */
+@media (max-width: 1024px) {
+    #canvas-container {
+        background:
+            radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 50%),
+            rgba(0, 0, 0, 0.12);
+    }
+}
+
+@media (max-width: 640px) {
+    #canvas-container {
+        background:
+            radial-gradient(circle at center, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 28%, rgba(0,0,0,0) 45%),
+            rgba(0, 0, 0, 0.12);
+    }
 }
 
 #controls h1 {

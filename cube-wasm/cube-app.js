@@ -136,6 +136,7 @@ function createCubeVisualization(state) {
     
     const cubeSize = 0.9;
     const gap = 0.05;
+    const bgColor = 0xE9ECEF;
     const colorMap = {
         0: 0xffffff, // White
         1: 0xffff00, // Yellow
@@ -152,19 +153,20 @@ function createCubeVisualization(state) {
         
         const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
         const materials = [
-            new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : 0x000000 }),
+            new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : bgColor }),
         ];
         
         const cubelet = new THREE.Mesh(geometry, materials);
         cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
         
         const edges = new THREE.EdgesGeometry(geometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+        // Make edges solid black for visible cubelet boundaries
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1, transparent: false, opacity: 1 }));
         cubelet.add(line);
         cubeGroup.add(cubelet);
     }
@@ -176,19 +178,20 @@ function createCubeVisualization(state) {
         
         const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
         const materials = [
-            new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : 0x000000 }),
+            new THREE.MeshStandardMaterial({ color: colors.right >= 0 ? colorMap[colors.right] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.left >= 0 ? colorMap[colors.left] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.top >= 0 ? colorMap[colors.top] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.bottom >= 0 ? colorMap[colors.bottom] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.front >= 0 ? colorMap[colors.front] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: colors.back >= 0 ? colorMap[colors.back] : bgColor }),
         ];
         
         const cubelet = new THREE.Mesh(geometry, materials);
         cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
         
         const edges = new THREE.EdgesGeometry(geometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+        // Make edges solid black for visible cubelet boundaries
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1, transparent: false, opacity: 1 }));
         cubelet.add(line);
         cubeGroup.add(cubelet);
     }
@@ -207,19 +210,20 @@ function createCubeVisualization(state) {
         const [x, y, z] = center.pos;
         const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
         const materials = [
-            new THREE.MeshStandardMaterial({ color: x === 1 ? colorMap[center.color] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: x === -1 ? colorMap[center.color] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: y === 1 ? colorMap[center.color] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: y === -1 ? colorMap[center.color] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: z === 1 ? colorMap[center.color] : 0x000000 }),
-            new THREE.MeshStandardMaterial({ color: z === -1 ? colorMap[center.color] : 0x000000 }),
+            new THREE.MeshStandardMaterial({ color: x === 1 ? colorMap[center.color] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: x === -1 ? colorMap[center.color] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: y === 1 ? colorMap[center.color] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: y === -1 ? colorMap[center.color] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: z === 1 ? colorMap[center.color] : bgColor }),
+            new THREE.MeshStandardMaterial({ color: z === -1 ? colorMap[center.color] : bgColor }),
         ];
         
         const cubelet = new THREE.Mesh(geometry, materials);
         cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
         
         const edges = new THREE.EdgesGeometry(geometry);
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+        // Make edges solid black for visible cubelet boundaries
+        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1, transparent: false, opacity: 1 }));
         cubelet.add(line);
         cubeGroup.add(cubelet);
     }
@@ -258,8 +262,8 @@ function setupScene() {
     const container = document.getElementById('canvas-container');
     
     scene = new THREE.Scene();
-    // Darker background for better contrast
-    scene.background = new THREE.Color(0x0b0b12);
+    // Scene background: neutral light gray
+    scene.background = new THREE.Color(0xE9ECEF);
 
     camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
     camera.position.set(5, 5, 5);
