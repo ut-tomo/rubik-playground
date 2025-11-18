@@ -183,7 +183,9 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+    /* subtle dark divider so it shows on the light page background */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    padding-bottom: 8px;
 }
 
 .collapsible summary::-webkit-details-marker {
@@ -201,6 +203,7 @@ body {
 }
 
 .collapsible-content {
+    /* reverted to previous minimal spacing per user request */
     padding-top: 12px;
 }
 
@@ -316,12 +319,10 @@ body {
     margin: 0 auto;
 }
 
-/* Canvas container: keep the page gradient but add a central black vignette
-   so only the area directly behind the cube appears black. The cube's
-   WebGL canvas will render on top of this background. */
+
 #canvas-container {
     /* Canvas container: solid black background for the cube area */
-    background: #000;
+    background: #E9ECEF;
     border-radius: 10px;
     overflow: hidden;
     display: flex;
@@ -332,7 +333,7 @@ body {
 }
 
 #controls {
-    background: rgba(255, 255, 255, 0.1);
+    background: #E9ECEF;
     backdrop-filter: blur(10px);
     border-radius: 15px;
     padding: 25px;
@@ -401,7 +402,7 @@ input[type="text"]::placeholder {
 }
 
 .info-section {
-    background: rgba(0, 0, 0, 0.2);
+    background: white;
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 15px;
