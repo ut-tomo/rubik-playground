@@ -134,8 +134,9 @@ function createCubeVisualization(state) {
     
     cubeGroup = new THREE.Group();
     
-    const cubeSize = 0.9;
-    const gap = 0.05;
+    // Make cubelets fit tightly: cubeSize + gap = 1.0 (tiny visible seam)
+    const cubeSize = 0.98;
+    const gap = 0.02;
     const bgColor = 0xE9ECEF;
     const colorMap = {
         0: 0xffffff, // White
@@ -164,9 +165,9 @@ function createCubeVisualization(state) {
         const cubelet = new THREE.Mesh(geometry, materials);
         cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
         
-        const edges = new THREE.EdgesGeometry(geometry);
-        // Make edges solid black for visible cubelet boundaries
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1, transparent: false, opacity: 1 }));
+    const edges = new THREE.EdgesGeometry(geometry);
+    // Make edges subtle so seams are less obvious
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x111111, linewidth: 1, transparent: true, opacity: 0.6 }));
         cubelet.add(line);
         cubeGroup.add(cubelet);
     }
@@ -189,9 +190,9 @@ function createCubeVisualization(state) {
         const cubelet = new THREE.Mesh(geometry, materials);
         cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
         
-        const edges = new THREE.EdgesGeometry(geometry);
-        // Make edges solid black for visible cubelet boundaries
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1, transparent: false, opacity: 1 }));
+    const edges = new THREE.EdgesGeometry(geometry);
+    // Make edges subtle so seams are less obvious
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x111111, linewidth: 1, transparent: true, opacity: 0.6 }));
         cubelet.add(line);
         cubeGroup.add(cubelet);
     }
@@ -221,9 +222,9 @@ function createCubeVisualization(state) {
         const cubelet = new THREE.Mesh(geometry, materials);
         cubelet.position.set(x * (cubeSize + gap), y * (cubeSize + gap), z * (cubeSize + gap));
         
-        const edges = new THREE.EdgesGeometry(geometry);
-        // Make edges solid black for visible cubelet boundaries
-        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 1, transparent: false, opacity: 1 }));
+    const edges = new THREE.EdgesGeometry(geometry);
+    // Make edges subtle so seams are less obvious
+    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x111111, linewidth: 1, transparent: true, opacity: 0.6 }));
         cubelet.add(line);
         cubeGroup.add(cubelet);
     }
