@@ -95,10 +95,14 @@
                 <div>
                     <p>・セクシームーブ <span class="notation-snippet">R U R' U'</span></p>
                     <p>・右トリガー (右回転) <span class="notation-snippet">U R U' R'</span></p>
+                    <p>・ルービックス マヌーバー <span class="notation-snippet">L R' F' L R' D' L R' B2 L' R D' L' R F' L' R U2</span></p>
                 </div>
                 <p>
-                    これらをそれぞれ6回連続で適用すると元に戻ることを確認してみてください !
+                    上二つはそれぞれ6回連続で適用すると元に戻ることを確認してみてください !
                     後で触れますが, このような部分的な交換を行うことを目的とした操作は Commutator (A→B→A'→B')という括りになります。
+                    また, ここではルービックスマヌーバーという呼称で紹介しますがこれはツクダ式の呼び方に由来していて, 一般的にこの呼び方で指し示される操作はどうやら色々ありそうです。。
+                    同じ面上の向かい合うエッジを両方フリップさせる操作です。
+                    これは(群論的には?)かなり特殊な操作です。
                 </p>
                     
             </div>
@@ -108,8 +112,8 @@
         <h1>Loading Rubik's Cube Playground...</h1>
         <p id="loading-status">Initializing...</p>
         <div style="margin-top: 20px;">
-            <div style="width: 300px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; overflow: hidden;">
-                <div id="progress-bar" style="width: 0%; height: 100%; background: white; transition: width 0.3s;"></div>
+            <div style="width: 300px; height: 4px; background: rgba(0,0,0,0.1); border-radius: 2px; overflow: hidden;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: #3498db; transition: width 0.3s;"></div>
             </div>
         </div>
     </div>
