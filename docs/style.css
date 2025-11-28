@@ -159,7 +159,7 @@ body {
     padding: 4px 10px;
     border-radius: 6px;
     /* pale yellow background for better contrast on light page background */
-    background: rgba(255, 243, 145, 0.95);
+    background: rgba(255, 243, 145, 0.1);
     color: #111 !important;
     border: 1px solid rgba(0, 0, 0, 0.08);
     font-family: 'Fira Code', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
@@ -311,7 +311,7 @@ body {
     background-size: 25px 25px;
     background-attachment: fixed;
     z-index: 1000;
-    /* Dark text for readability on light background */
+    /* Dark text for loading screen to match page */
     color: #111;
 }
 
@@ -324,9 +324,10 @@ body {
     margin: 0 auto;
 }
 
+
 #canvas-container {
     /* Canvas container: solid black background for the cube area */
-    background: #000;
+    background: #E9ECEF;
     border-radius: 10px;
     overflow: hidden;
     display: flex;
@@ -344,21 +345,6 @@ body {
     overflow-y: auto;
     max-height: 600px;
     border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* Slightly adjust vignette size for medium and small screens */
-@media (max-width: 1024px) {
-    #canvas-container {
-        /* Keep cube area solid black on medium screens as well */
-        background: #000;
-    }
-}
-
-@media (max-width: 640px) {
-    #canvas-container {
-        /* Keep cube area solid black on small screens as well */
-        background: #000;
-    }
 }
 
 #controls h1 {
@@ -481,6 +467,21 @@ input[type="text"]::placeholder {
 
     #controls {
         max-height: none;
+    }
+}
+
+/* Slightly adjust vignette size for medium and small screens */
+@media (max-width: 1024px) {
+    #canvas-container {
+        /* Keep cube area solid black on medium screens as well */
+        background: #000;
+    }
+}
+
+@media (max-width: 640px) {
+    #canvas-container {
+        /* Keep cube area solid black on small screens as well */
+        background: #000;
     }
 }
 
