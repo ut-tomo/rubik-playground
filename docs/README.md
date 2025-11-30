@@ -1,24 +1,32 @@
-# Rubik & Group Theory Playground (docs)
+# Rubik & Group Theory Playground
 
-この `docs/` フォルダは GitHub Pages に配置するデプロイ用コンテンツ用です。内容はトップの README と同様に、デモページの簡潔な説明を掲載しています。
+An interactive Rubik's Cube demo powered by WebAssembly + Three.js.
 
-🌐 デモ: https://ut-tomo.github.io/rubik-playground/
+🌐 Demo: https://ut-tomo.github.io/rubik-playground/
 
-## 概要
+## Overview
 
-ブラウザ上で Rust 実装（WebAssembly）と Three.js による 3D 可視化を組み合わせたインタラクティブなルービックキューブのデモです。UI から基本手やアルゴリズムを入力して動作を確認できます。
+This playground combines Rust-based cube logic (via WebAssembly) with Three.js 3D visualization, allowing you to manipulate and observe the cube directly in your browser. The cube's state (permutation and orientation) is displayed on screen, making it easy to visually verify the effects of algorithms.
 
+## Basic Operations
 
-## 操作のポイント
+- Notation: Singmaster notation (e.g., `R`, `U`, `F`, `R'`, `U2`)
+- Algorithm input: Enter moves separated by spaces (e.g., `R U R' U'`)
+- Quick Moves buttons allow rapid application of basic moves (U/D/L/R/F/B and their inverses/doubles)
 
-- シングマスター記法で手順を入力（例: `R U R' U'`）。
-- Quick Moves、Algorithm、Advanced（Commutator / Conjugate）を UI 上で使用できます。
+## Advanced Operations
 
-## 技術スタック
+- Commutator: `[A, B] = A B A^{-1} B^{-1}` — Used to create localized cycles
+- Conjugate: `m_2^{m_1} = m_1^{-1} m_2 m_1` — Setup moves to relocate algorithms to different positions
 
-- Rust, wasm-pack, WebAssembly
-- Three.js
+In the Advanced section, enter algorithms A and B to generate and apply Commutator or Conjugate results.
 
-## ライセンス
+## Tech Stack
+
+- Rust (cube core logic)
+- WebAssembly (wasm-pack)
+- Three.js (frontend 3D rendering)
+
+## License
 
 MIT
