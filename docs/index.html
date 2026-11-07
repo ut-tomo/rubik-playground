@@ -248,8 +248,9 @@
             <div class="section-inner">
                 <div class="i18n-en" lang="en">
                     <h2>Group Theory</h2>
-                    <article class="theory-subsection">
-                        <h3>Preliminaries: permutations, transpositions, and cycles</h3>
+                    <details class="collapsible theory-subsection">
+                        <summary>Preliminaries: permutations, transpositions, and cycles</summary>
+                        <div class="collapsible-content">
                         <p>
                             The Rubik’s Cube can be regarded as a set of small cubies. Since no operation makes a cubie disappear or leaves duplicate cubies anywhere, an operation on the cube can be described as a bijection on the set of cubies (their positions and orientations)—though this is not very rigorous mathematically.
                         </p>
@@ -332,10 +333,12 @@
                             The orientations of edge and corner cubies can likewise be represented by cyclic values. An edge cubie has two visible faces, so its orientation lies in the two-element set $\{0,1\}$; the orientations of all 12 edges form an element of $\mathbb{Z}_2^{12}$. Likewise, a corner has three visible faces, so its orientation lies in $\{0,1,2\}$; the orientations of all 8 corners form an element of $\mathbb{Z}_3^8$.
                             More concretely than the $S_{48}$ description, then, tracking corner/edge positions and orientations separately represents each state reached by an element of $G$ as an element of $S_8 \times S_{12} \times \mathbb{Z}_3^8 \times \mathbb{Z}_2^{12}$; the reachable states form a subset of this space.
                         </p>
-                    </article>
+                    </div>
+                    </details>
 
-                    <article class="theory-subsection">
-                        <h3>The fundamental theorem of the cube derived from group theory</h3>
+                    <details class="collapsible theory-subsection">
+                        <summary>The fundamental theorem of the cube derived from group theory</summary>
+                        <div class="collapsible-content">
                         <p>
                             As a basic fact about the Rubik’s Cube, it is known that the necessary and sufficient conditions for a state to be reachable can be described group-theoretically.
                             Write the corner positions as $\rho$, corner orientations as $v$, edge positions as $\sigma$, and edge orientations as $w$. Then a state $(\rho,\sigma,v,w) \in S_8 \times S_{12} \times \mathbb{Z}_3^8 \times \mathbb{Z}_2^{12}$ is reachable if and only if the following three conditions hold:
@@ -498,10 +501,12 @@
                             \]
                             and satisfying all three conditions is equivalent to being reachable. Relative to the unconstrained $8!\,12!\,3^8\,2^{12}$ formal states, this is exactly a fraction of $1/12$.
                         </p>
-                    </article>
+                    </div>
+                    </details>
 
-                    <article class="theory-subsection">
-                        <h3>Conjugation: a well-known lemma on permutations</h3>
+                    <details class="collapsible theory-subsection">
+                        <summary>Conjugation: a well-known lemma on permutations</summary>
+                        <div class="collapsible-content">
                         <p>
                             It seems that people who are good at solving the Rubik’s Cube use the following lemma implicitly, over and over.
                         </p>
@@ -544,13 +549,15 @@
                             \]
                             Try the moves on the cube, and you should be able to see this for yourself. With this way of thinking, the pieces’ positions and orientations become easy to track, and you’ll see that the whole sequence twists two corners.
                         </p>
-                    </article>
+                    </div>
+                    </details>
                 </div>
 
                 <div class="i18n-ja" lang="ja">
                     <h2>群論</h2>
-                    <article class="theory-subsection">
-                        <h3>準備事項: 置換・互換・巡回置換</h3>
+                    <details class="collapsible theory-subsection">
+                        <summary>準備事項: 置換・互換・巡回置換</summary>
+                        <div class="collapsible-content">
                         <p>
                             ルービックキューブは小方体の集合として表せ, そしてあらゆる操作によってもルービックキューブの小方体が欠落したり, どこかに重複して存在したりすることはないことを考えると
                             ルービックキューブの操作は小方体(の位置とその向きの)集合上の全単射として記述できることがわかる (数学的にあまり厳密ではないけれど)。
@@ -636,10 +643,12 @@
                             3面が見えているコーナーキューブについても同様の議論で$\{0, 1, 2\}$という3元集合として表現でき, 全コーナーキューブのorientationは $\mathbb{Z}_3^{8}$ の元として表現できる。
                             つまり, 先ほどの$G$は$S_{48}$の部分群であるという議論からさらに具体的に, エッジ / コーナーに分類しその位置と向きを別々に追跡すれば, $G$の各元によって得られる状態は$S_8 \times S_{12} \times \mathbb{Z}_3^8 \times \mathbb{Z}_2^{12}$の元として表現でき, 実現可能な状態全体はその部分集合になるということが言える。
                         </p>
-                    </article>
+                    </div>
+                    </details>
 
-                    <article class="theory-subsection">
-                        <h3>群論から導かれるキューブの基本定理</h3>
+                    <details class="collapsible theory-subsection">
+                        <summary>群論から導かれるキューブの基本定理</summary>
+                        <div class="collapsible-content">
                         <p>
                             ルービックキューブに関する基本的な事実として, ある状態が実現可能であるための必要十分条件が群論的に記述できることが知られている。
                             コーナーキューブの位置を$\rho$, 向きを$v$, エッジキューブの位置を$\sigma$, 向きを$w$と書く時, ある状態$(\rho,\sigma, v, w) \in S_8 \times S_{12} \times \mathbb{Z}_3^8 \times \mathbb{Z}_2^{12}$が実現可能であるための必要十分条件は以下の3つである:
@@ -825,10 +834,12 @@
                             が従い, 「3 条件をすべて満たすこと」が「実現可能であること」と同値である。
                             制約を課さない形式上の状態数 $8!\,12!\,3^8\,2^{12}$ と比べると, 実現可能な状態はちょうど $1/12$ である。
                         </p>
-                    </article>
+                    </div>
+                    </details>
 
-                    <article class="theory-subsection">
-                        <h3>置換に関する有名補題</h3>
+                    <details class="collapsible theory-subsection">
+                        <summary>置換に関する有名補題</summary>
+                        <div class="collapsible-content">
                         <p>
                             ルービックキューブをうまく解く人は, 以下の補題を暗黙のうちに何度も使っているよう。
                         </p>
@@ -889,7 +900,8 @@
                             \]
                             となるということである。実際にキューブに操作を施してみればこれが確認できるはずである。この考え方に基けば容易に位置と向きが追跡可能であり, この操作全体が2コーナーをtwistすることがわかるだろう。
                         </p>
-                    </article>
+                    </div>
+                    </details>
                 </div>
             </div>
         </section>
