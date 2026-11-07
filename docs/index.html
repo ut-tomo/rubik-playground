@@ -506,19 +506,19 @@
                             It seems that people who are good at solving the Rubik’s Cube use the following lemma implicitly, over and over.
                         </p>
                         <p>
-                            Here we compose permutations from left to right, in the order the moves are performed, to match cube notation.
+                            Here we stick to the usual convention: a product of permutations acts from right to left, so $\sigma\tau$ means "first $\tau$, then $\sigma$". A move sequence such as <span class="notation-snippet">R' D2 R</span>, read left to right, therefore corresponds to the permutation $R\,D2\,R^{-1}$.
                         </p>
                         <p>
                             <strong>Lemma.</strong> Let $r \in S_n$ be a permutation, and let $i$ and $j$ be distinct elements of $\{1,2,\ldots,n\}$. Suppose $s$ is a permutation that sends $i$ to $j$; that is,
                             \[ s(i)=j. \]
-                            Then the permutation $s^r=r^{-1}sr$ sends $r(i)$ to $r(j)$; in other words,
+                            Then the permutation $s^r=rsr^{-1}$ sends $r(i)$ to $r(j)$; in other words,
                             \[ s^r(r(i))=r(j). \]
                         </p>
                         <p>
-                            In particular, let $i_1,i_2,\ldots,i_k$ be distinct elements of $\{1,2,\ldots,n\}$, and let $s$ be the cycle that sends $i_j$ to $i_{j+1}$. Then $s^r=r^{-1}sr$ is the cycle that sends $r(i_j)$ to $r(i_{j+1})$.
+                            In particular, let $i_1,i_2,\ldots,i_k$ be distinct elements of $\{1,2,\ldots,n\}$, and let $s$ be the cycle that sends $i_j$ to $i_{j+1}$. Then $s^r=rsr^{-1}$ is the cycle that sends $r(i_j)$ to $r(i_{j+1})$.
                         </p>
                         <p>
-                            Elements $a,b\in G$ related by $b=g^{-1}ag$ are called <em>conjugate</em>, and the Rubik’s Cube gives you a particularly good feel for conjugation.
+                            Elements $a,b\in G$ related by $b=gag^{-1}$ are called <em>conjugate</em>, and the Rubik’s Cube gives you a particularly good feel for conjugation.
                         </p>
                         <p>
                             A striking example is <span class="notation-snippet">R' D2 R B' U2 B</span> repeated twice: it twists ufr clockwise and dbl counterclockwise (you can try it in the playground above).
@@ -530,7 +530,7 @@
                             In other words, once you realize that only the corners need to be tracked under <span class="notation-snippet">R' D2 R B' U2 B</span>, the result is fairly intuitive even before getting into the lemma and all that—but let’s give it a little more explanation here.
                         </p>
                         <p>
-                            What the lemma says is this: if $s$ causes $i\rightarrow j$, then under $r^{-1}sr$, the action of $s$ is copied to wherever $r$ moves things.
+                            What the lemma says is this: if $s$ causes $i\rightarrow j$, then under $rsr^{-1}$, the action of $s$ is copied to wherever $r$ moves things.
                             Taking <span class="notation-snippet">R' D2 R</span> as an example, the permutation produced by <span class="notation-snippet">D2</span> takes place where <span class="notation-snippet">R'</span> has moved the pieces (see the figure below).
                             <img src="./image/rrev.png" alt="conjugation by R" class="theory-image theory-image-small">
                             So, looking only at the corners, the permutation produced by <span class="notation-snippet">D2</span>
@@ -833,14 +833,14 @@
                             ルービックキューブをうまく解く人は, 以下の補題を暗黙のうちに何度も使っているよう。
                         </p>
                         <p>
-                            ここではキューブ記法に合わせ, 置換を操作の実行順に左から右へ合成する。
+                            ここでは通常の慣習に従い, 置換の積は右から左に作用する（$\sigma\tau$ は「$\tau$ の後に $\sigma$」）とする。したがって, 左から右に読む操作列 <span class="notation-snippet">R' D2 R</span> は置換 $R\,D2\,R^{-1}$ に対応する。
                         </p>
                         <p>
                             補題: $r \in S_n$ を置換とし, $i$ および $j$ を $\{1, 2, \ldots, n\}$ の互いに異なる元とする。$s$ を, $i$ を $j$ に写す置換, すなわち
                             \[
                                 s(i) = j
                             \]
-                            とするとき, 置換 $s^r = r^{-1}sr$ は $r(i)$ を $r(j)$ に写す置換である。すなわち,
+                            とするとき, 置換 $s^r = rsr^{-1}$ は $r(i)$ を $r(j)$ に写す置換である。すなわち,
                             \[
                                 s^r(r(i)) = r(j)
                             \]
@@ -848,11 +848,11 @@
                         </p>
                         <p>
                             特に, $i_1, i_2, \ldots, i_k$ を $\{1, 2, \ldots, n\}$ の互いに異なる元とし,
-                            $s$ を $i_j$ を $i_{j+1}$ に写す巡回置換とするとき,置換 $s^r = r^{-1}sr$ は $r(i_j)$ を
+                            $s$ を $i_j$ を $i_{j+1}$ に写す巡回置換とするとき,置換 $s^r = rsr^{-1}$ は $r(i_j)$ を
                             $r(i_{j+1})$ に写す巡回置換である。
                         </p>
                         <p>
-                            $b = g^{-1} a g$ という関係の元$a, b \in G$ の関係性は「共役 (conjugation)」と呼ばれるが,
+                            $b = g a g^{-1}$ という関係の元$a, b \in G$ の関係性は「共役 (conjugation)」と呼ばれるが,
                             ルービックキューブはこの共役をよく体感できる構造になっている。
                         </p>
                         <p>
@@ -864,7 +864,7 @@
                             つまり, <span class="notation-snippet">R' D2 R B' U2 B</span>による変化はコーナーキューブのみ追跡すれば良いと思えば, 上のような命題云々以前に直感的に理解可能とも言えるが, ここではもう少しそこに説明を与える。
                         </p>
                         <p>
-                            先ほどの命題の主張は, $s$ が $ i \rightarrow j$ を起こす時, $r^{-1}s r$ により $s$ の操作は $r$ の移動先でコピーされて起こるということである。
+                            先ほどの命題の主張は, $s$ が $ i \rightarrow j$ を起こす時, $rsr^{-1}$ により $s$ の操作は $r$ の移動先でコピーされて起こるということである。
                             これは, <span class="notation-snippet">R' D2 R</span>を例にすると, <span class="notation-snippet">D2</span> による置換が <span class="notation-snippet">R'</span> によって移動した先で起こっているということである。(次の図)
                             <br>
                             <img src="./image/rrev.png" alt="r rev" class="theory-image theory-image-small">
