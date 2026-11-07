@@ -737,3 +737,6 @@ html[data-lang="ja"] .i18n-en {
 #references h2::after {
     display: none;
 }
+
+.related-link { margin-bottom: 18px; }
+.related-link a { color: inherit; text-decoration: underline; }
